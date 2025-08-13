@@ -11,7 +11,7 @@ export default function WelcomePage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
                 <Link href="/" className="flex items-center gap-2.5">
                 <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -42,8 +42,8 @@ export default function WelcomePage() {
             <div className="absolute inset-0 -z-10 bg-grid-pattern opacity-5" />
             <div className="absolute inset-x-0 top-0 -z-20 m-auto h-[40rem] w-[80rem] bg-primary/10 blur-[12rem]" />
 
-            <div className="container mx-auto px-4 text-center">
-                <h1 className="text-4xl font-extrabold tracking-tight font-headline md:text-6xl lg:text-7xl">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 className="text-4xl font-extrabold tracking-tight font-headline sm:text-5xl md:text-6xl lg:text-7xl">
                     Build Habits That <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Stick</span>
                 </h1>
                 <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
@@ -58,7 +58,7 @@ export default function WelcomePage() {
                     </Button>
                 </div>
             </div>
-             <div className="container mx-auto mt-16 px-4">
+             <div className="container mx-auto mt-16 px-4 sm:px-6 lg:px-8">
                 <div className="relative mx-auto max-w-6xl">
                     <Image
                         src="/images/648a0c7b1a62a3bc444336dd_team-building-activities-for-large-groups-teamland.com.jpg"
@@ -74,7 +74,7 @@ export default function WelcomePage() {
 
         {/* Features Section */}
         <section id="features" className="py-20 bg-secondary/30">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-12 text-center">
                     <h2 className="text-3xl font-bold font-headline sm:text-4xl">Why Habit Buddies Works</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">Everything you need to succeed, all in one place.</p>
@@ -119,7 +119,7 @@ export default function WelcomePage() {
 
          {/* How It Works Section */}
         <section id="how-it-works" className="py-20">
-             <div className="container mx-auto px-4">
+             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-12 text-center">
                     <h2 className="text-3xl font-bold font-headline sm:text-4xl">Get Started in 3 Easy Steps</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">Joining a community is simple and fast.</p>
@@ -149,7 +149,7 @@ export default function WelcomePage() {
 
         {/* Testimonials Section */}
         <section id="testimonials" className="py-20 bg-secondary/30">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-12 text-center">
                     <h2 className="text-3xl font-bold font-headline sm:text-4xl">Loved by People Worldwide</h2>
                     <p className="mt-4 max-w-2xl mx-auto text-muted-foreground">Don't just take our word for it. Here's what our members are saying.</p>
@@ -210,7 +210,7 @@ export default function WelcomePage() {
       </main>
 
         <footer className="border-t">
-             <div className="container mx-auto px-4 py-8">
+             <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
                 <div className="grid gap-8 md:grid-cols-3">
                     <div>
                         <Link href="/" className="flex items-center gap-2.5 mb-4">
