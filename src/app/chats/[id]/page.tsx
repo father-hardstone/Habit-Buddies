@@ -9,7 +9,10 @@ import { ProtectedRoute } from '@/components/protected-route';
 
 function ChatDetailPageContent({ params }: { params: { id: string } }) {
   const { user } = useAuth();
-  const chat = getChatById(params.id, user!.id);
+  // The params object is not a promise in a client component that's
+  // rendered by another client component, so we can access it directly.
+  const id = params.id;
+  const chat = getChatById(id, user!.id);
 
   if (!chat) {
     notFound();
