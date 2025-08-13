@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -12,7 +13,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Home, Users, User, Smile } from 'lucide-react';
+import { Home, Users, User, Smile, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
@@ -31,6 +32,7 @@ function Logo() {
 const menuItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/groups', label: 'Groups', icon: Users },
+  { href: '/chats', label: 'Chats', icon: MessageSquare },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
