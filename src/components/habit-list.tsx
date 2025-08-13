@@ -1,43 +1,15 @@
 
 'use client';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HabitCard } from '@/components/habit-card';
-import { NewHabitDialog } from './new-habit-dialog';
 import type { Habit } from '@/lib/database';
-import { getHabitsForGroup } from '@/lib/database';
 
 interface HabitListProps {
-  groupId: string;
+  habits: Habit[];
 }
 
-const habitColors = [
-    'hsl(var(--chart-1))',
-    'hsl(var(--chart-2))',
-    'hsl(var(--chart-3))',
-    'hsl(var(--chart-4))',
-    'hsl(var(--chart-5))',
-];
-
-export function HabitList({ groupId }: HabitListProps) {
-    const [habits, setHabits] = useState<Habit[]>([]);
-
-    useEffect(() => {
-      const groupHabits = getHabitsForGroup(groupId);
-      setHabits(groupHabits);
-    }, [groupId]);
-
-    const addHabit = (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => {
-        const habitToAdd: Habit = {
-            ...newHabit,
-            id: (habits.length + 1).toString(),
-            streak: 0,
-            completed: 0,
-            color: habitColors[habits.length % habitColors.length],
-        };
-        setHabits([...habits, habitToAdd]);
-    };
-
+export function HabitList({ habits }: HabitListProps) {
   return (
     <Card>
       <CardHeader>

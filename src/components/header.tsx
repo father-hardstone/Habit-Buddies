@@ -3,16 +3,17 @@
 import { NewHabitDialog } from './new-habit-dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import * as React from 'react';
-import { getJoinedGroups, getCurrentUser } from '@/lib/database';
+import { getJoinedGroups, getCurrentUser, type Habit } from '@/lib/database';
 
 const CURRENT_USER_ID = 1;
 
 interface HeaderProps {
     activeGroup: string;
     onActiveGroupChange: (groupId: string) => void;
+    addHabit: (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => void;
 }
 
-export function Header({ activeGroup, onActiveGroupChange }: HeaderProps) {
+export function Header({ activeGroup, onActiveGroupChange, addHabit }: HeaderProps) {
   const user = getCurrentUser();
   const joinedGroups = getJoinedGroups(CURRENT_USER_ID);
   
@@ -37,7 +38,7 @@ export function Header({ activeGroup, onActiveGroupChange }: HeaderProps) {
           <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, let's make today productive!</p>
         </div>
-        {activeGroupData?.adminId === CURRENT_USER_ID && <NewHabitDialog />}
+        {activeGroupData?.adminId === CURRENT_USER_ID && <NewHabitDialog addHabit={addHabit} />}
       </div>
       <div className="w-full overflow-x-auto">
         <Tabs value={activeGroup} onValueChange={onActiveGroupChange}>

@@ -51,7 +51,11 @@ const habitFormSchema = z.object({
 
 type HabitFormValues = z.infer<typeof habitFormSchema>;
 
-export function NewHabitDialog() {
+interface NewHabitDialogProps {
+  addHabit: (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => void;
+}
+
+export function NewHabitDialog({ addHabit }: NewHabitDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
   const form = useForm<HabitFormValues>({
@@ -64,10 +68,7 @@ export function NewHabitDialog() {
   });
 
   const onSubmit = async (data: HabitFormValues) => {
-    // In a real app, you'd call an API to save the habit
-    console.log('New habit created:', data);
-    
-    // For now we just show a toast
+    addHabit(data);
     toast({
       title: 'Habit Created!',
       description: `Your new habit "${data.name}" has been added.`,
