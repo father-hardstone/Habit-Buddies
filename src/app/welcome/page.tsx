@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function WelcomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
+    <div className="flex flex-col min-h-screen bg-background text-foreground font-body overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,7 +59,7 @@ export default function WelcomePage() {
                 </div>
             </div>
              <div className="container mx-auto mt-16 px-4 sm:px-6 lg:px-8">
-                <div className="relative mx-auto max-w-6xl">
+                <div className="relative mx-auto max-w-4xl">
                     <Image
                         src="/images/648a0c7b1a62a3bc444336dd_team-building-activities-for-large-groups-teamland.com.jpg"
                         alt="Habit Buddies Dashboard"
@@ -245,3 +245,5 @@ export default function WelcomePage() {
     </div>
   );
 }
+
+    
