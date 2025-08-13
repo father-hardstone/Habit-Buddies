@@ -3,12 +3,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trophy, ArrowUp, ArrowDown, MessageCircle, Crown, User } from 'lucide-react';
+import { Trophy, ArrowUp, ArrowDown, MessageCircle, Crown, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ChatPanel } from './chat-panel';
 import { getGroupById } from '@/lib/database';
+import { useToast } from '@/hooks/use-toast';
+import { generateAccountabilityMessage } from '@/ai/flows/accountability-messages';
 
 interface GroupRankingProps {
   groupId: string;
@@ -17,11 +19,40 @@ interface GroupRankingProps {
 
 export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
   const [showAll, setShowAll] = React.useState(false);
+  const [isNudging, setIsNudging] = React.useState<number | null>(null);
+  const { toast } = useToast();
   
   const group = getGroupById(groupId);
 
   if (!group) {
     return <Card><CardHeader><CardTitle>Select a Group</CardTitle><CardDescription>Choose a group from the tabs above to see the ranking.</CardDescription></CardHeader></Card>;
+  }
+
+  const handleNudge = async (memberId: number, memberName: string) => {
+    setIsNudging(memberId);
+    try {
+      const result = await generateAccountabilityMessage({
+        userName: memberName,
+        habitName: 'their habits', // A more generic phrase for now
+        groupName: group.name,
+        missedDays: 3, // Example value
+      });
+
+      toast({
+        title: `Nudge for ${memberName}!`,
+        description: result.message,
+      });
+
+    } catch (error) {
+       console.error(error);
+       toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'Could not generate nudge. Please try again.',
+      });
+    } finally {
+        setIsNudging(null);
+    }
   }
 
   const userIsAdmin = group.adminId === currentUserId;
@@ -86,12 +117,26 @@ export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
                      <p className="text-sm text-muted-foreground">{member.score} points</p>
                   </div>
                   {member.userId !== currentUserId && (
-                    <ChatPanel member={member} groupName={group.name}>
-                      <Button variant="ghost" size="icon">
-                        <MessageCircle className="h-5 w-5" />
-                        <span className="sr-only">Message {member.name}</span>
-                      </Button>
-                    </ChatPanel>
+                    <div className="flex items-center">
+                      {member.change === 'down' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleNudge(member.userId, member.name)}
+                          disabled={isNudging === member.userId}
+                          className="text-accent hover:text-accent"
+                        >
+                          {isNudging === member.userId ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+                          <span className="sr-only">Nudge {member.name}</span>
+                        </Button>
+                      )}
+                      <ChatPanel member={member} groupName={group.name}>
+                        <Button variant="ghost" size="icon">
+                          <MessageCircle className="h-5 w-5" />
+                          <span className="sr-only">Message {member.name}</span>
+                        </Button>
+                      </ChatPanel>
+                    </div>
                   )}
                    {member.isAdmin && (
                      <Crown className="h-5 w-5 text-warning" />
