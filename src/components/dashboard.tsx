@@ -57,8 +57,17 @@ export function Dashboard() {
             completed: 0,
             color: habitColors[habits.length % habitColors.length],
         };
+
+        // In a real app, you'd send this to a server to be saved.
+        // For this prototype, we'll log it and I can use it to update the JSON file.
+        console.log('--- NEW HABIT DATA ---');
+        console.log('Group ID to update:', activeGroup);
+        console.log('Habit to add:', JSON.stringify(habitToAdd, null, 2));
+        console.log('----------------------');
+
         const newHabits = [...habits, habitToAdd];
         setHabits(newHabits);
+        // This function updates the data in memory for this session
         updateGroupHabits(activeGroup, newHabits);
     };
 
