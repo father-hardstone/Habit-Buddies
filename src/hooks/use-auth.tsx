@@ -40,26 +40,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = (userId: number) => {
-    const userToLogin = getUserById(userId);
-    if (userToLogin) {
-      const emailName = userToLogin.email.split('@')[0];
-      const username = emailName.charAt(0).toUpperCase() + emailName.slice(1);
-      
-      // Create authenticated user with required fields
-      const authenticatedUser = {
-        id: userToLogin.id,
-        username: username,
-        email: userToLogin.email,
-        profileUrl: userToLogin.avatar,
-        name: username // Keep for backward compatibility
-      };
-      
-      setUser(authenticatedUser as any); // Type assertion for backward compatibility
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
-      router.push('/');
-    } else {
+    try {
+      const userToLogin = getUserById(userId);
+      if (userToLogin) {
+        const emailName = userToLogin.email.split('@')[0];
+        const username = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+        
+        // Create authenticated user with required fields
+        const authenticatedUser = {
+          id: userToLogin.id,
+          username: username,
+          email: userToLogin.email,
+          profileUrl: userToLogin.avatar,
+          name: username // Keep for backward compatibility
+        };
+        
+        setUser(authenticatedUser as any); // Type assertion for backward compatibility
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
+        router.push('/');
+      } else {
         // Handle case where user ID is invalid
-        console.error("Login failed: User not found");
+        throw new Error("User not found");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error; // Re-throw to let the login page handle it
     }
   };
 
