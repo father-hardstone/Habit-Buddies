@@ -1,4 +1,3 @@
-
 'use client';
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,7 @@ export function HabitList({ habits }: HabitListProps) {
     <Card className="bg-transparent shadow-none border-none">
       <CardHeader>
         <CardTitle className="text-3xl font-bold">My Habits</CardTitle>
-        <CardDescription>Track your progress and build your streaks.</CardDescription>
+        <CardDescription>Your daily and weekly progress at a glance.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6 sm:grid-cols-2">
         {habits.map((habit) => (

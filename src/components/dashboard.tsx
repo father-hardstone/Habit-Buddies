@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { Header } from '@/components/header';
@@ -9,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import Link from 'next/link';
+import { HabitAnalytics } from './habit-analytics';
 
 const habitColors = [
     'hsl(var(--chart-1))',
@@ -70,8 +72,9 @@ export function Dashboard() {
     <div className="flex flex-col min-h-screen">
       <Header activeGroup={activeGroup} onActiveGroupChange={setActiveGroup} addHabit={addHabit} />
       <main className="flex-1 p-4 md:p-8 lg:p-12 grid gap-10 grid-cols-1 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-10">
           <HabitList habits={habits} />
+          <HabitAnalytics habits={habits} />
         </div>
         <div className="lg:col-span-1 space-y-10">
           <GroupRanking groupId={activeGroup} currentUserId={user.id} />

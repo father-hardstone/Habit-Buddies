@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -72,7 +73,7 @@ export function HabitCard({ habit }: { habit: Habit }) {
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-warning">
                   <Flame className="h-5 w-5" />
-                  <span>{habit.streak} day streak</span>
+                  <span>{habit.streak}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
