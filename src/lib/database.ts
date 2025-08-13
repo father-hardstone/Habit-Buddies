@@ -118,6 +118,21 @@ export function getChatById(chatId: string, userId: number) {
     };
 }
 
+export function addMessageToChat(chatId: string, senderId: number, text: string) {
+    const chat = chats.find(c => c.id === chatId);
+    if (chat) {
+        const newMessage = {
+            id: chat.messages.length + 1,
+            senderId,
+            text,
+            timestamp: new Date().toISOString(),
+        };
+        chat.messages.push(newMessage as any);
+        return newMessage;
+    }
+    return null;
+}
+
 
 // Types
 export type User = ReturnType<typeof getCurrentUser>;

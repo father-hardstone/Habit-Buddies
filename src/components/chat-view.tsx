@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Send, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DetailedChat } from '@/lib/database';
+import { useAuth } from '@/hooks/use-auth';
+import { addMessageToChat } from '@/lib/database';
 
 interface ChatViewProps {
   chat: NonNullable<DetailedChat>;
@@ -19,10 +21,13 @@ type Message = NonNullable<DetailedChat>['messages'][number];
 export function ChatView({ chat: initialChat }: ChatViewProps) {
   const [chat, setChat] = React.useState(initialChat);
   const [newMessage, setNewMessage] = React.useState('');
+  const { user } = useAuth();
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' || !user) return;
+
+    addMessageToChat(chat.id, user.id, newMessage);
 
     const message: Message = {
       id: chat.messages.length + 1,

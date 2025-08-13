@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { getUserById, type User } from '@/lib/database';
 
 type AuthUser = NonNullable<User>;
@@ -42,8 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (userId: number) => {
     const userToLogin = getUserById(userId);
     if (userToLogin) {
-      setUser(userToLogin);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userToLogin));
+      const emailName = userToLogin.email.split('@')[0];
+      const name = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      const authenticatedUser = { ...userToLogin, name };
+      
+      setUser(authenticatedUser);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
       router.push('/');
     } else {
         // Handle case where user ID is invalid
