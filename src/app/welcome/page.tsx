@@ -59,13 +59,13 @@ export default function WelcomePage() {
                 </div>
             </div>
              <div className="container mx-auto mt-16 px-4">
-                <div className="relative">
+                <div className="relative mx-auto max-w-6xl">
                     <Image
                         src="/images/648a0c7b1a62a3bc444336dd_team-building-activities-for-large-groups-teamland.com.jpg"
                         alt="Habit Buddies Dashboard"
                         width={1200}
                         height={675}
-                        className="rounded-2xl border-4 border-background/20 shadow-2xl object-cover"
+                        className="w-full h-auto rounded-2xl border-4 border-background/20 shadow-2xl object-cover mx-auto"
                         priority
                     />
                 </div>

@@ -22,11 +22,11 @@ import { Button } from './ui/button';
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
-      <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+    <Link href="/" className="flex items-center gap-2.5 p-2">
+      <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
         <Smile className="size-5" />
       </div>
-      <h1 className="text-lg font-bold text-foreground font-headline">Habit Buddies</h1>
+      <h1 className="text-lg font-bold text-sidebar-foreground font-headline">Habit Buddies</h1>
     </Link>
   );
 }
@@ -44,8 +44,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
+      <Sidebar className="transition-colors duration-200">
+        <SidebarHeader className="border-b border-sidebar-border">
           <Logo />
         </SidebarHeader>
         <SidebarContent>
@@ -56,6 +56,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                   asChild
                   isActive={pathname === item.href}
                   tooltip={item.label}
+                  className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground"
                 >
                   <Link href={item.href}>
                     <item.icon />
@@ -66,8 +67,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter>
-          {user ? (
+        <SidebarFooter className="border-t border-sidebar-border">
+          {user && user.username ? (
             <div className="flex flex-col gap-2 p-2">
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -75,11 +76,11 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                         <AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{user.username}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        <span className="text-sm font-semibold text-sidebar-foreground">{user.username}</span>
+                        <span className="text-xs text-sidebar-foreground/70">{user.email}</span>
                     </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={logout} className="w-full justify-start">
+                <Button variant="ghost" size="sm" onClick={logout} className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                     <LogOut className="mr-2 h-4 w-4"/>
                     Log Out
                 </Button>
@@ -90,7 +91,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Not logged in</span>
+                  <span className="text-sm font-semibold text-sidebar-foreground">Not logged in</span>
                 </div>
               </div>
           )}
