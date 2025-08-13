@@ -1,5 +1,4 @@
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { NewHabitDialog } from './new-habit-dialog';
 
 export function Header() {
   return (
@@ -8,10 +7,7 @@ export function Header() {
         <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
         <p className="text-muted-foreground">Welcome back, let's make today productive!</p>
       </div>
-      <Button>
-        <PlusCircle className="mr-2 h-4 w-4" />
-        New Habit
-      </Button>
+      <NewHabitDialog />
     </header>
   );
 }

@@ -1,8 +1,10 @@
-'use client'
+'use client';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HabitCard, type Habit } from '@/components/habit-card';
+import { NewHabitDialog } from './new-habit-dialog';
 
-const habits: Habit[] = [
+const initialHabits: Habit[] = [
   {
     id: '1',
     name: 'Read for 15 minutes',
@@ -41,7 +43,28 @@ const habits: Habit[] = [
   },
 ];
 
+const habitColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+];
+
 export function HabitList() {
+    const [habits, setHabits] = useState<Habit[]>(initialHabits);
+
+    const addHabit = (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => {
+        const habitToAdd: Habit = {
+            ...newHabit,
+            id: (habits.length + 1).toString(),
+            streak: 0,
+            completed: 0,
+            color: habitColors[habits.length % habitColors.length],
+        };
+        setHabits([...habits, habitToAdd]);
+    };
+
   return (
     <Card>
       <CardHeader>
