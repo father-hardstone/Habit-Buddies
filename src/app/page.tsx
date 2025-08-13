@@ -1,3 +1,10 @@
+import { SidebarLayout } from '@/components/sidebar-layout';
+import { Dashboard } from '@/components/dashboard';
+
 export default function Home() {
-  return <></>;
+  return (
+    <SidebarLayout>
+      <Dashboard />
+    </SidebarLayout>
+  );
 }
