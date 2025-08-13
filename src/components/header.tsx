@@ -19,7 +19,7 @@ export function Header({ activeGroup, onActiveGroupChange, addHabit }: HeaderPro
      return (
        <header className="sticky top-0 z-10 flex flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
         <div>
-          <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
+          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
           <p className="text-muted-foreground">Loading user...</p>
         </div>
       </header>
@@ -30,11 +30,11 @@ export function Header({ activeGroup, onActiveGroupChange, addHabit }: HeaderPro
   const activeGroupData = joinedGroups.find(g => g.id === activeGroup);
 
   return (
-    <header className="sticky top-0 z-10 flex flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
+    <header className="sticky top-0 z-30 flex flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:px-8 md:py-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, let's make today productive!</p>
+          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back, {user.username}! Let's make today count.</p>
         </div>
         {activeGroupData?.adminId === user.id && <NewHabitDialog addHabit={addHabit} />}
       </div>

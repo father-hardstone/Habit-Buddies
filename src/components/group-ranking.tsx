@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trophy, ArrowUp, ArrowDown, MessageCircle, Crown, Sparkles, Loader2 } from 'lucide-react';
+import { Trophy, ArrowUp, ArrowDown, MessageCircle, Crown, Sparkles, Loader2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import { ChatPanel } from './chat-panel';
 import { getGroupById } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { generateAccountabilityMessage } from '@/ai/flows/accountability-messages';
+import { cn } from '@/lib/utils';
 
 interface GroupRankingProps {
   groupId: string;
@@ -59,27 +60,30 @@ export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
   const groupMembers = group.members.sort((a,b) => a.rank - b.rank);
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
-                <CardTitle>{group.name}</CardTitle>
+                <CardTitle>{group.name} Leaderboard</CardTitle>
                 <CardDescription>Your weekly progress ranking.</CardDescription>
             </div>
              {userIsAdmin && (
                 <div className="flex items-center gap-2 text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-md">
                     <Crown className="h-4 w-4" />
-                    <span>You are an admin</span>
+                    <span>Admin</span>
                 </div>
             )}
         </div>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-4">
+        <ul className="space-y-1 -mx-4">
           {groupMembers.slice(0, 4).map((member, index) => (
-            <li key={member.userId} className="flex items-center gap-4">
-              <span className="text-lg font-bold text-muted-foreground">{member.rank}</span>
-              <Avatar>
+            <li key={member.userId} className={cn(
+                "flex items-center gap-4 px-4 py-2 transition-colors",
+                 member.userId === currentUserId && "bg-primary/10"
+            )}>
+              <span className="text-lg font-bold text-muted-foreground w-6 text-center">{member.rank}</span>
+              <Avatar className="h-10 w-10">
                 <AvatarImage src={member.avatar} alt={member.name} data-ai-hint="user avatar" />
                 <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
               </Avatar>
@@ -106,14 +110,20 @@ export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
             </DialogHeader>
             <ul className="space-y-4 max-h-[60vh] overflow-y-auto p-1">
               {groupMembers.map((member) => (
-                <li key={member.userId} className="flex items-center gap-4">
+                <li key={member.userId} className={cn(
+                    "flex items-center gap-4 p-2 rounded-md",
+                    member.userId === currentUserId && "bg-primary/10"
+                )}>
                   <span className="font-bold text-muted-foreground w-6 text-center">{member.rank}</span>
                    <Avatar>
                     <AvatarImage src={member.avatar} alt={member.name} data-ai-hint="user avatar" />
                     <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-semibold">{member.userId === currentUserId ? 'You' : member.name}</p>
+                    <p className="font-semibold flex items-center gap-2">
+                        {member.userId === currentUserId ? 'You' : member.name}
+                        {member.isAdmin && <Crown className="h-4 w-4 text-warning" />}
+                    </p>
                      <p className="text-sm text-muted-foreground">{member.score} points</p>
                   </div>
                   {member.userId !== currentUserId && (
@@ -138,9 +148,9 @@ export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
                       </ChatPanel>
                     </div>
                   )}
-                   {member.isAdmin && (
-                     <Crown className="h-5 w-5 text-warning" />
-                  )}
+                   {member.userId === currentUserId && (
+                        <Star className="h-5 w-5 text-foreground"/>
+                   )}
                 </li>
               ))}
             </ul>

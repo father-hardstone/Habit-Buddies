@@ -1,7 +1,7 @@
 
 'use client';
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { HabitCard } from '@/components/habit-card';
 import type { Habit } from '@/lib/database';
 
@@ -11,16 +11,20 @@ interface HabitListProps {
 
 export function HabitList({ habits }: HabitListProps) {
   return (
-    <Card>
+    <Card className="bg-transparent shadow-none border-none">
       <CardHeader>
-        <CardTitle>My Habits</CardTitle>
+        <CardTitle className="text-3xl font-bold">My Habits</CardTitle>
+        <CardDescription>Track your progress and build your streaks.</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-2">
+      <CardContent className="grid gap-6 sm:grid-cols-2">
         {habits.map((habit) => (
           <HabitCard key={habit.id} habit={habit} />
         ))}
          {habits.length === 0 && (
-            <p className="text-muted-foreground col-span-2 text-center p-8">This group has no habits yet. Admins can add them!</p>
+            <div className="col-span-2 text-center p-12 bg-card rounded-lg border border-dashed">
+                <p className="text-muted-foreground">This group has no habits yet.</p>
+                <p className="text-sm text-muted-foreground">Admins can add new habits for the group.</p>
+            </div>
         )}
       </CardContent>
     </Card>

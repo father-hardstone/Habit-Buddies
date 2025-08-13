@@ -51,31 +51,32 @@ export function HabitCard({ habit }: { habit: Habit }) {
   return (
     <TooltipProvider>
       <Card
-        className="relative overflow-hidden transition-all hover:shadow-lg"
+        className="relative overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl"
         style={{ '--habit-color': habit.color } as React.CSSProperties}
       >
-        <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-card/50 to-transparent opacity-50 transition-opacity group-hover:opacity-100"></div>
+        <CardContent className="relative flex flex-col items-center justify-center p-6 text-center">
           <div className="relative mb-4">
-            <ProgressCircle value={progress} style={{ color: habit.color }} />
+            <ProgressCircle value={progress} />
             <div className="absolute inset-0 flex items-center justify-center">
               <Icon className="h-10 w-10 text-[--habit-color]" />
             </div>
           </div>
-          <h3 className="font-headline text-lg font-semibold">{habit.name}</h3>
+          <h3 className="font-headline text-xl font-semibold">{habit.name}</h3>
           <p className="text-sm text-muted-foreground">
-            Completed {completed}/{habit.goal} times this week
+            {completed}/{habit.goal} times this week
           </p>
 
-          <div className="mt-4 flex w-full items-center justify-between">
+          <div className="mt-6 flex w-full items-center justify-between">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 text-warning">
+                <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-warning">
                   <Flame className="h-5 w-5" />
-                  <span className="font-bold">{habit.streak}</span>
+                  <span>{habit.streak} day streak</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{habit.streak}-day streak!</p>
+                <p>You're on a {habit.streak}-day streak! Keep it up!</p>
               </TooltipContent>
             </Tooltip>
             <Button
@@ -83,12 +84,12 @@ export function HabitCard({ habit }: { habit: Habit }) {
               onClick={handleComplete}
               disabled={isGoalReached}
               className={cn(
-                'bg-[--habit-color] text-primary-foreground hover:bg-[--habit-color]/90',
+                'rounded-full bg-[--habit-color] text-primary-foreground shadow-lg transition-all hover:bg-[--habit-color]/90 hover:scale-105 active:scale-95',
                 isGoalReached && 'bg-success text-success-foreground hover:bg-success/90'
               )}
             >
               <Check className={cn('mr-2 h-4 w-4', { 'hidden': !isGoalReached })} />
-              {isGoalReached ? 'Done!' : 'Complete'}
+              {isGoalReached ? 'Goal Met!' : 'Mark as Done'}
             </Button>
           </div>
         </CardContent>

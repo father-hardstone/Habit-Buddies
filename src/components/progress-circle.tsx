@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 interface ProgressCircleProps extends React.SVGProps<SVGSVGElement> {
   value: number;
@@ -20,7 +21,7 @@ export const ProgressCircle = React.forwardRef<SVGSVGElement, ProgressCircleProp
         width="100"
         height="100"
         viewBox="0 0 100 100"
-        className={className}
+        className={cn("transform -rotate-90", className)}
         {...props}
       >
         <circle
@@ -28,7 +29,7 @@ export const ProgressCircle = React.forwardRef<SVGSVGElement, ProgressCircleProp
           cy="50"
           r={radius}
           strokeWidth="10"
-          className="stroke-muted/50"
+          className="stroke-muted/20"
           fill="transparent"
         />
         <circle
@@ -39,8 +40,7 @@ export const ProgressCircle = React.forwardRef<SVGSVGElement, ProgressCircleProp
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          transform="rotate(-90 50 50)"
-          className="stroke-current transition-all duration-500"
+          className="stroke-current text-[--habit-color] transition-all duration-500 ease-in-out"
           fill="transparent"
         />
       </svg>

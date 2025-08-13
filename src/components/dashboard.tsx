@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { Header } from '@/components/header';
@@ -70,11 +69,11 @@ export function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header activeGroup={activeGroup} onActiveGroupChange={setActiveGroup} addHabit={addHabit} />
-      <main className="flex-1 p-4 md:p-6 lg:p-8 grid gap-8 grid-cols-1 lg:grid-cols-3">
+      <main className="flex-1 p-4 md:p-8 lg:p-12 grid gap-10 grid-cols-1 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <HabitList habits={habits} />
         </div>
-        <div className="lg:col-span-1 space-y-8">
+        <div className="lg:col-span-1 space-y-10">
           <GroupRanking groupId={activeGroup} currentUserId={user.id} />
           <PersonalizedMotivation />
         </div>
