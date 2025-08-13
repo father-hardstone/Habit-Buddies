@@ -5,9 +5,11 @@ import { Header } from '@/components/header';
 import { HabitList } from '@/components/habit-list';
 import { GroupRanking } from '@/components/group-ranking';
 import { PersonalizedMotivation } from '@/components/personalized-motivation';
-import { getJoinedGroups, getCurrentUser, type Habit } from '@/lib/database';
-
-const CURRENT_USER_ID = 1;
+import { getJoinedGroups, getHabitsForGroup, type Habit } from '@/lib/database';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { Button } from './ui/button';
+import Link from 'next/link';
 
 const habitColors = [
     'hsl(var(--chart-1))',
@@ -18,14 +20,16 @@ const habitColors = [
 ];
 
 export function Dashboard() {
-  const user = getCurrentUser();
-  const joinedGroups = getJoinedGroups(CURRENT_USER_ID);
+  const { user } = useAuth();
+  const joinedGroups = getJoinedGroups(user!.id); // User is guaranteed by ProtectedRoute
   const [activeGroup, setActiveGroup] = React.useState(joinedGroups[0]?.id || '');
   const [habits, setHabits] = React.useState<Habit[]>([]);
 
   React.useEffect(() => {
     if(activeGroup) {
-      const groupHabits = require(`@/data/groups.json`).find((g: any) => g.id === activeGroup)?.habits || [];
+      // In a real app, this would be an API call.
+      // For now, we simulate saving by re-reading from our "database"
+      const groupHabits = getHabitsForGroup(activeGroup)
       setHabits(groupHabits);
     }
   }, [activeGroup]);
@@ -35,9 +39,13 @@ export function Dashboard() {
      return (
        <div className="flex flex-col min-h-screen">
          <Header activeGroup="" onActiveGroupChange={() => {}} addHabit={() => {}} />
-         <main className="flex-1 p-4 md:p-6 lg:p-8 text-center">
-            <p className="text-lg">You haven't joined any groups yet.</p>
+         <main className="flex-1 p-8 text-center flex flex-col items-center justify-center">
+            <p className="text-2xl font-bold">Welcome to Habit Buddies!</p>
+            <p className="text-lg text-muted-foreground mt-2">You haven't joined any groups yet.</p>
             <p className="text-muted-foreground">Go to the Groups page to find a community!</p>
+            <Button asChild className="mt-4">
+                <Link href="/groups">Find Groups</Link>
+            </Button>
          </main>
        </div>
      );
@@ -46,11 +54,14 @@ export function Dashboard() {
   const addHabit = (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => {
         const habitToAdd: Habit = {
             ...newHabit,
-            id: (habits.length + 1).toString(),
+            id: (habits.length + 1).toString(), // simplified ID generation
             streak: 0,
             completed: 0,
             color: habitColors[habits.length % habitColors.length],
         };
+        // NOTE: This only updates local state.
+        // To persist, we'd need to update the JSON file, which is outside the scope of this simulation.
+        // In a real app, this would be an API call.
         setHabits([...habits, habitToAdd]);
     };
 
@@ -62,7 +73,7 @@ export function Dashboard() {
           <HabitList habits={habits} />
         </div>
         <div className="lg:col-span-1 space-y-8">
-          <GroupRanking groupId={activeGroup} />
+          <GroupRanking groupId={activeGroup} currentUserId={user.id} />
           <PersonalizedMotivation />
         </div>
       </main>

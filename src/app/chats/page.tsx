@@ -1,4 +1,5 @@
 
+'use client';
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,11 +9,14 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { getChatsForUser } from '@/lib/database';
+import { useAuth } from '@/hooks/use-auth';
+import { ProtectedRoute } from '@/components/protected-route';
 
-const CURRENT_USER_ID = 1; // In a real app, this would come from auth
 
-export default function ChatsPage() {
-  const chats = getChatsForUser(CURRENT_USER_ID);
+function ChatsPageContent() {
+  const { user } = useAuth();
+  const chats = getChatsForUser(user!.id);
+
   return (
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">
@@ -74,4 +78,12 @@ export default function ChatsPage() {
       </div>
     </SidebarLayout>
   );
+}
+
+export default function ChatsPage() {
+    return (
+        <ProtectedRoute>
+            <ChatsPageContent />
+        </ProtectedRoute>
+    )
 }

@@ -1,4 +1,5 @@
 
+'use client';
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,9 @@ import Image from 'next/image';
 import { Users, PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { getAllGroups } from '@/lib/database';
+import { ProtectedRoute } from '@/components/protected-route';
 
-export default function GroupsPage() {
+function GroupsPageContent() {
   const groups = getAllGroups();
 
   return (
@@ -59,4 +61,12 @@ export default function GroupsPage() {
       </div>
     </SidebarLayout>
   );
+}
+
+export default function GroupsPage() {
+    return (
+        <ProtectedRoute>
+            <GroupsPageContent />
+        </ProtectedRoute>
+    )
 }

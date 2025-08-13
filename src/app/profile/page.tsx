@@ -1,4 +1,5 @@
 
+'use client';
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,21 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { XCircle } from 'lucide-react';
-import { getCurrentUser, getJoinedGroups } from '@/lib/database';
+import { getJoinedGroups } from '@/lib/database';
+import { useAuth } from '@/hooks/use-auth';
+import { ProtectedRoute } from '@/components/protected-route';
 
-const CURRENT_USER_ID = 1; // In a real app, this would come from auth
-
-export default function ProfilePage() {
-  const user = getCurrentUser();
-  const joinedGroups = getJoinedGroups(CURRENT_USER_ID);
-
-  if (!user) {
-    return (
-      <SidebarLayout>
-        <div className="p-8 text-center">User not found.</div>
-      </SidebarLayout>
-    );
-  }
+function ProfilePageContent() {
+  const { user } = useAuth();
+  
+  // The user is guaranteed to be non-null here because of ProtectedRoute
+  const joinedGroups = getJoinedGroups(user!.id);
 
   return (
     <SidebarLayout>
@@ -41,19 +36,19 @@ export default function ProfilePage() {
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src={user.avatar} data-ai-hint="user avatar" />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={user!.avatar} data-ai-hint="user avatar" />
+                      <AvatarFallback>{user!.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <Button variant="outline">Change Photo</Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name</Label>
-                      <Input id="name" defaultValue={user.name} />
+                      <Input id="name" defaultValue={user!.name} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" defaultValue={user.email} />
+                      <Input id="email" type="email" defaultValue={user!.email} />
                     </div>
                   </div>
                 </CardContent>
@@ -90,4 +85,13 @@ export default function ProfilePage() {
       </div>
     </SidebarLayout>
   );
+}
+
+
+export default function ProfilePage() {
+    return (
+        <ProtectedRoute>
+            <ProfilePageContent />
+        </ProtectedRoute>
+    )
 }

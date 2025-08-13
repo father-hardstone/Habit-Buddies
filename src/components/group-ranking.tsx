@@ -10,24 +10,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ChatPanel } from './chat-panel';
 import { getGroupById } from '@/lib/database';
 
-const CURRENT_USER_ID = 1;
-
 interface GroupRankingProps {
   groupId: string;
+  currentUserId: number;
 }
 
-export function GroupRanking({ groupId }: GroupRankingProps) {
+export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
   const [showAll, setShowAll] = React.useState(false);
   
   const group = getGroupById(groupId);
 
   if (!group) {
-    return <Card><CardHeader><CardTitle>Group not found</CardTitle></CardHeader></Card>;
+    return <Card><CardHeader><CardTitle>Select a Group</CardTitle><CardDescription>Choose a group from the tabs above to see the ranking.</CardDescription></CardHeader></Card>;
   }
 
-  const userIsAdmin = group.adminId === CURRENT_USER_ID;
+  const userIsAdmin = group.adminId === currentUserId;
   const groupMembers = group.members.sort((a,b) => a.rank - b.rank);
-  const me = group.members.find(m => m.userId === CURRENT_USER_ID);
 
   return (
     <Card>
@@ -38,7 +36,7 @@ export function GroupRanking({ groupId }: GroupRankingProps) {
                 <CardDescription>Your weekly progress ranking.</CardDescription>
             </div>
              {userIsAdmin && (
-                <div className="flex items-center gap-2 text-xs font-semibold text-warning bg-warning/10 px-2 py-1 rounded-md">
+                <div className="flex items-center gap-2 text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-md">
                     <Crown className="h-4 w-4" />
                     <span>You are an admin</span>
                 </div>
@@ -55,7 +53,7 @@ export function GroupRanking({ groupId }: GroupRankingProps) {
                 <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold">{member.userId === CURRENT_USER_ID ? 'You' : member.name}</p>
+                <p className="font-semibold">{member.userId === currentUserId ? 'You' : member.name}</p>
                 <p className="text-sm text-muted-foreground">{member.score} points</p>
               </div>
               <div className="flex items-center gap-1">
@@ -84,10 +82,10 @@ export function GroupRanking({ groupId }: GroupRankingProps) {
                     <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-semibold">{member.userId === CURRENT_USER_ID ? 'You' : member.name}</p>
+                    <p className="font-semibold">{member.userId === currentUserId ? 'You' : member.name}</p>
                      <p className="text-sm text-muted-foreground">{member.score} points</p>
                   </div>
-                  {member.userId !== CURRENT_USER_ID && (
+                  {member.userId !== currentUserId && (
                     <ChatPanel member={member} groupName={group.name}>
                       <Button variant="ghost" size="icon">
                         <MessageCircle className="h-5 w-5" />

@@ -13,11 +13,12 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Home, Users, User, Smile, MessageSquare } from 'lucide-react';
+import { Home, Users, User, Smile, MessageSquare, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
-import { getCurrentUser } from '@/lib/database';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from './ui/button';
 
 function Logo() {
   return (
@@ -39,7 +40,7 @@ const menuItems = [
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const user = getCurrentUser();
+  const { user, logout } = useAuth();
 
   return (
     <SidebarProvider>
@@ -67,15 +68,21 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
         <SidebarFooter>
           {user ? (
-            <div className="flex items-center gap-3 p-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={user.avatar} alt="User avatar" data-ai-hint="user avatar" />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">{user.name}</span>
-                <span className="text-xs text-muted-foreground">{user.email}</span>
-              </div>
+            <div className="flex flex-col gap-2 p-2">
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.avatar} alt="User avatar" data-ai-hint="user avatar" />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                        <span className="text-sm font-semibold">{user.name}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                    </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={logout} className="w-full justify-start">
+                    <LogOut className="mr-2 h-4 w-4"/>
+                    Log Out
+                </Button>
             </div>
           ) : (
              <div className="flex items-center gap-3 p-2">

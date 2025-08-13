@@ -1,13 +1,15 @@
 
+'use client';
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { ChatView } from '@/components/chat-view';
 import { getChatById } from '@/lib/database';
 import { notFound } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { ProtectedRoute } from '@/components/protected-route';
 
-const CURRENT_USER_ID = 1; // In a real app, this would come from auth
-
-export default function ChatDetailPage({ params }: { params: { id: string } }) {
-  const chat = getChatById(params.id, CURRENT_USER_ID);
+function ChatDetailPageContent({ params }: { params: { id: string } }) {
+  const { user } = useAuth();
+  const chat = getChatById(params.id, user!.id);
 
   if (!chat) {
     notFound();
@@ -18,4 +20,12 @@ export default function ChatDetailPage({ params }: { params: { id: string } }) {
       <ChatView chat={chat} />
     </SidebarLayout>
   );
+}
+
+export default function ChatDetailPage({ params }: { params: { id: string } }) {
+    return (
+        <ProtectedRoute>
+            <ChatDetailPageContent params={params} />
+        </ProtectedRoute>
+    )
 }
