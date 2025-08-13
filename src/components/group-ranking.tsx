@@ -63,7 +63,7 @@ export function GroupRanking({ groupId, currentUserId }: GroupRankingProps) {
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
-                <CardTitle>Group: "{group.name}"</CardTitle>
+                <CardTitle>"{group.name}" Ranking</CardTitle>
                 <CardDescription>Your weekly progress ranking.</CardDescription>
             </div>
              {userIsAdmin && (

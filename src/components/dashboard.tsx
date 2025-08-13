@@ -5,7 +5,7 @@ import { Header } from '@/components/header';
 import { HabitList } from '@/components/habit-list';
 import { GroupRanking } from '@/components/group-ranking';
 import { PersonalizedMotivation } from '@/components/personalized-motivation';
-import { getJoinedGroups, getHabitsForGroup, type Habit } from '@/lib/database';
+import { getJoinedGroups, getHabitsForGroup, type Habit, updateGroupHabits } from '@/lib/database';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
@@ -27,8 +27,6 @@ export function Dashboard() {
 
   React.useEffect(() => {
     if(activeGroup) {
-      // In a real app, this would be an API call.
-      // For now, we simulate saving by re-reading from our "database"
       const groupHabits = getHabitsForGroup(activeGroup)
       setHabits(groupHabits);
     }
@@ -54,15 +52,14 @@ export function Dashboard() {
   const addHabit = (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => {
         const habitToAdd: Habit = {
             ...newHabit,
-            id: (habits.length + 1).toString(), // simplified ID generation
+            id: `${activeGroup}-${(habits.length + 1)}-${new Date().getTime()}`, // more unique ID
             streak: 0,
             completed: 0,
             color: habitColors[habits.length % habitColors.length],
         };
-        // NOTE: This only updates local state.
-        // To persist, we'd need to update the JSON file, which is outside the scope of this simulation.
-        // In a real app, this would be an API call.
-        setHabits([...habits, habitToAdd]);
+        const newHabits = [...habits, habitToAdd];
+        setHabits(newHabits);
+        updateGroupHabits(activeGroup, newHabits);
     };
 
   return (

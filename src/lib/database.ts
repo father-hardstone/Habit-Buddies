@@ -55,6 +55,16 @@ export function getHabitsForGroup(groupId: string) {
     return group?.habits || [];
 }
 
+export function updateGroupHabits(groupId: string, newHabits: Habit[]) {
+    const groupIndex = groups.findIndex(g => g.id === groupId);
+    if (groupIndex !== -1) {
+        // This is a mock update. In a real app, you'd save this to a database.
+        // For the prototype, we are modifying the imported object in memory.
+        groups[groupIndex].habits = newHabits as any;
+    }
+}
+
+
 // Chat Functions
 export function getChatsForUser(userId: number) {
     const userChats = chats.filter(c => c.participantIds.includes(userId));
