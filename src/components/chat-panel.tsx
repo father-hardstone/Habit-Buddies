@@ -25,13 +25,40 @@ interface ChatPanelProps {
   children: React.ReactNode;
 }
 
-const messages = [
+const initialMessages = [
     { id: 1, sender: 'other', text: 'Hey, great job on the streak this week!' },
     { id: 2, sender: 'me', text: 'Thanks! You too. That last challenge was tough.' },
     { id: 3, sender: 'other', text: 'For sure. Ready for the next one?' },
 ];
 
+type Message = typeof initialMessages[number];
+
 export function ChatPanel({ member, groupName, children }: ChatPanelProps) {
+  const [messages, setMessages] = React.useState(initialMessages);
+  const [newMessage, setNewMessage] = React.useState('');
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() === '') return;
+
+    const message: Message = {
+      id: messages.length + 1,
+      sender: 'me',
+      text: newMessage,
+    };
+    
+    setMessages([...messages, message]);
+    setNewMessage('');
+  };
+  
+  React.useEffect(() => {
+    const chatContainer = document.getElementById('chat-panel-container');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }, [messages]);
+
+
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -56,7 +83,7 @@ export function ChatPanel({ member, groupName, children }: ChatPanelProps) {
             </div>
           </div>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div id="chat-panel-container" className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -82,13 +109,18 @@ export function ChatPanel({ member, groupName, children }: ChatPanelProps) {
           ))}
         </div>
         <div className="p-4 border-t bg-background">
-          <div className="relative">
-            <Input placeholder="Type a message..." className="pr-12" />
-            <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+          <form onSubmit={handleSendMessage} className="relative">
+            <Input 
+                placeholder="Type a message..." 
+                className="pr-12"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+            />
+            <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
               <Send className="h-4 w-4" />
               <span className="sr-only">Send</span>
             </Button>
-          </div>
+          </form>
         </div>
       </SheetContent>
     </Sheet>

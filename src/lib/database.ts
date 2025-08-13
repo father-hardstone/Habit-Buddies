@@ -72,12 +72,13 @@ export function getChatsForUser(userId: number) {
             avatar: otherParticipant.avatar,
             aiHint: 'user avatar',
             latestMessage: lastMessage.text,
-            timestamp: formatDistanceToNow(new Date(lastMessage.timestamp), { addSuffix: true }),
+            timestamp: new Date(lastMessage.timestamp),
+            formattedTimestamp: formatDistanceToNow(new Date(lastMessage.timestamp), { addSuffix: true }),
             unreadCount: chat.unreadCount,
             online: group?.members.find(m => m.userId === otherParticipantId)?.online || false,
             groupName: group?.name || "Unknown Group",
         };
-    }).sort((a, b) => b.unreadCount - a.unreadCount);
+    }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 export function getChatById(chatId: string, userId: number) {

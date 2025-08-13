@@ -8,15 +8,44 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Send, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from './ui/badge';
 import type { DetailedChat } from '@/lib/database';
-
 
 interface ChatViewProps {
   chat: NonNullable<DetailedChat>;
 }
 
-export function ChatView({ chat }: ChatViewProps) {
+type Message = NonNullable<DetailedChat>['messages'][number];
+
+export function ChatView({ chat: initialChat }: ChatViewProps) {
+  const [chat, setChat] = React.useState(initialChat);
+  const [newMessage, setNewMessage] = React.useState('');
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() === '') return;
+
+    const message: Message = {
+      id: chat.messages.length + 1,
+      sender: 'me',
+      text: newMessage,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setChat(prevChat => ({
+        ...prevChat!,
+        messages: [...prevChat!.messages, message]
+    }));
+    setNewMessage('');
+  };
+  
+    React.useEffect(() => {
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }, [chat.messages]);
+
+
   return (
     <div className="flex flex-col h-screen">
       <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background/80 p-4 backdrop-blur-sm">
@@ -42,7 +71,7 @@ export function ChatView({ chat }: ChatViewProps) {
           </div>
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto p-4 space-y-4">
+      <main id="chat-container" className="flex-1 overflow-y-auto p-4 space-y-4">
         {chat.messages.map((message) => (
           <div
             key={message.id}
@@ -68,13 +97,18 @@ export function ChatView({ chat }: ChatViewProps) {
         ))}
       </main>
       <footer className="p-4 border-t bg-background">
-        <div className="relative">
-          <Input placeholder="Type a message..." className="pr-12" />
-          <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+        <form onSubmit={handleSendMessage} className="relative">
+          <Input 
+            placeholder="Type a message..." 
+            className="pr-12"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+          />
+          <Button type="submit" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
             <Send className="h-4 w-4" />
             <span className="sr-only">Send</span>
           </Button>
-        </div>
+        </form>
       </footer>
     </div>
   );

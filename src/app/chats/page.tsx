@@ -46,7 +46,7 @@ export default function ChatsPage() {
                   <div className="flex-1">
                     <div className="flex justify-between">
                       <p className="font-semibold">{chat.name}</p>
-                      <p className="text-xs text-muted-foreground">{chat.timestamp}</p>
+                      <p className="text-xs text-muted-foreground">{chat.formattedTimestamp}</p>
                     </div>
                     <div className="flex justify-between items-center">
                       <p className={cn(
