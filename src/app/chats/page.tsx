@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { getChatsForUser } from '@/lib/database';
 import { useAuth } from '@/hooks/use-auth';
 import { ProtectedRoute } from '@/components/protected-route';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 
 function ChatsPageContent() {
@@ -21,9 +22,12 @@ function ChatsPageContent() {
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold font-headline">Chats</h1>
-            <p className="text-muted-foreground">Your recent conversations.</p>
+          <div className="flex flex-1 items-center gap-2">
+            <SidebarTrigger className="md:hidden" />
+            <div>
+                <h1 className="text-2xl font-bold font-headline">Chats</h1>
+                <p className="text-muted-foreground">Your recent conversations.</p>
+            </div>
           </div>
           <div className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

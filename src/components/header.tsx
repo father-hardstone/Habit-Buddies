@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import * as React from 'react';
 import { getJoinedGroups, type Habit } from '@/lib/database';
 import { useAuth } from '@/hooks/use-auth';
+import { SidebarTrigger } from './ui/sidebar';
 
 interface HeaderProps {
     activeGroup: string;
@@ -32,9 +33,12 @@ export function Header({ activeGroup, onActiveGroupChange, addHabit }: HeaderPro
   return (
     <header className="sticky top-0 z-30 flex flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:px-8 md:py-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user.username}! Let's make today count.</p>
+        <div className="flex items-center gap-2">
+           <SidebarTrigger className="md:hidden" />
+          <div>
+            <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back, {user.username}! Let's make today count.</p>
+          </div>
         </div>
         {activeGroupData?.adminId === user.id && <NewHabitDialog addHabit={addHabit} />}
       </div>

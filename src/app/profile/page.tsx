@@ -11,6 +11,7 @@ import { XCircle } from 'lucide-react';
 import { getJoinedGroups } from '@/lib/database';
 import { useAuth } from '@/hooks/use-auth';
 import { ProtectedRoute } from '@/components/protected-route';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function ProfilePageContent() {
   const { user } = useAuth();
@@ -22,7 +23,10 @@ function ProfilePageContent() {
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
-          <h1 className="text-2xl font-bold font-headline">My Profile</h1>
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="md:hidden" />
+            <h1 className="text-2xl font-bold font-headline">My Profile</h1>
+          </div>
           <Button>Save Changes</Button>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8">

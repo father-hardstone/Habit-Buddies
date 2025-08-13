@@ -101,7 +101,7 @@ export function ChatView({ chat: initialChat }: ChatViewProps) {
           </div>
         ))}
       </main>
-      <footer className="p-4 border-t bg-background">
+      <footer className="p-4 border-t bg-background pb-20 md:pb-4">
         <form onSubmit={handleSendMessage} className="relative">
           <Input 
             placeholder="Type a message..." 

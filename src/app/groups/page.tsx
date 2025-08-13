@@ -8,6 +8,7 @@ import { Users, PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { getAllGroups } from '@/lib/database';
 import { ProtectedRoute } from '@/components/protected-route';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function GroupsPageContent() {
   const groups = getAllGroups();
@@ -16,9 +17,12 @@ function GroupsPageContent() {
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">
         <header className="sticky top-0 z-10 flex flex-col md:flex-row items-center justify-between gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold font-headline">Discover Groups</h1>
-            <p className="text-muted-foreground">Find a community to share your journey with.</p>
+          <div className="flex items-center gap-2 self-start">
+             <SidebarTrigger className="md:hidden" />
+            <div>
+              <h1 className="text-2xl font-bold font-headline">Discover Groups</h1>
+              <p className="text-muted-foreground">Find a community to share your journey with.</p>
+            </div>
           </div>
           <div className="flex w-full md:w-auto items-center gap-2">
              <div className="relative flex-1">
