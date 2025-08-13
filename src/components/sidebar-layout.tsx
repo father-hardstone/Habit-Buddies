@@ -71,11 +71,11 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             <div className="flex flex-col gap-2 p-2">
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.avatar} alt="User avatar" data-ai-hint="user avatar" />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={user.profileUrl} alt="User avatar" data-ai-hint="user avatar" />
+                        <AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{user.name}</span>
+                        <span className="text-sm font-semibold">{user.username}</span>
                         <span className="text-xs text-muted-foreground">{user.email}</span>
                     </div>
                 </div>

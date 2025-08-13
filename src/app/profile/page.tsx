@@ -36,15 +36,15 @@ function ProfilePageContent() {
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src={user!.avatar} data-ai-hint="user avatar" />
-                      <AvatarFallback>{user!.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={user!.profileUrl} data-ai-hint="user avatar" />
+                      <AvatarFallback>{user!.username.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <Button variant="outline">Change Photo</Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name</Label>
-                      <Input id="name" defaultValue={user!.name} />
+                      <Input id="name" defaultValue={user!.username} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>

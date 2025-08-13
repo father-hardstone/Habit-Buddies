@@ -35,7 +35,7 @@ export function PersonalizedMotivation() {
       
       const result = await generateEncouragement({
         habitName: topHabit?.name || 'making progress',
-        userName: user.name,
+        userName: user.username,
         streakLength: topHabit?.streak || 1,
       });
 

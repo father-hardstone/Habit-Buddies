@@ -1,34 +1,16 @@
 
-'use client';
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { ChatView } from '@/components/chat-view';
 import { getChatById } from '@/lib/database';
 import { notFound } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
-import { ProtectedRoute } from '@/components/protected-route';
+import { ChatDetailPageContent } from './chat-detail-content';
 
-function ChatDetailPageContent({ params }: { params: { id: string } }) {
-  const { user } = useAuth();
-  // The params object is not a promise in a client component that's
-  // rendered by another client component, so we can access it directly.
-  const id = params.id;
-  const chat = getChatById(id, user!.id);
-
-  if (!chat) {
-    notFound();
-  }
-
+export default async function ChatDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
+  // We can't check user auth here since this is a server component
+  // The ProtectedRoute will handle authentication in the client component
   return (
-    <SidebarLayout>
-      <ChatView chat={chat} />
-    </SidebarLayout>
+    <ChatDetailPageContent chatId={id} />
   );
-}
-
-export default function ChatDetailPage({ params }: { params: { id: string } }) {
-    return (
-        <ProtectedRoute>
-            <ChatDetailPageContent params={params} />
-        </ProtectedRoute>
-    )
 }

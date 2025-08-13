@@ -13,12 +13,23 @@ import * as React from 'react';
 export default function LoginPage() {
     const { login } = useAuth();
     const router = useRouter();
+    const [email, setEmail] = React.useState('user@email.com');
+    const [password, setPassword] = React.useState('password');
 
     const handleLogin = () => {
-        // In a real app, you'd get this from the form and verify credentials
-        const DEMO_USER_ID = 1; 
-        login(DEMO_USER_ID);
-        router.push('/');
+        // Extract user ID from email for demo purposes
+        // In a real app, you'd verify credentials against a backend
+        const emailName = email.split('@')[0];
+        let userId = 1; // Default to user 1
+        
+        // Map common email prefixes to user IDs for demo
+        if (emailName === 'alex') userId = 2;
+        else if (emailName === 'jess') userId = 3;
+        else if (emailName === 'mo') userId = 4;
+        else if (emailName === 'sara') userId = 5;
+        else if (emailName === 'ben') userId = 6;
+        
+        login(userId);
     };
 
     return (
@@ -38,11 +49,22 @@ export default function LoginPage() {
                     <CardContent className="space-y-4">
                          <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="user@email.com" defaultValue="user@email.com" />
+                            <Input 
+                                id="email" 
+                                type="email" 
+                                placeholder="user@email.com" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" defaultValue="password" />
+                            <Input 
+                                id="password" 
+                                type="password" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
@@ -50,7 +72,7 @@ export default function LoginPage() {
                             Log In
                         </Button>
                         <p className="text-xs text-muted-foreground">
-                            This is a demo. Click "Log In" to continue.
+                            Demo: Try user@email.com, alex@email.com, jess@email.com, mo@email.com, sara@email.com, or ben@email.com
                         </p>
                     </CardFooter>
                 </Card>
