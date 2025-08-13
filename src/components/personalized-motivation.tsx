@@ -17,6 +17,25 @@ export function PersonalizedMotivation() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Fallback Albert Einstein quotes when GenKit server is unavailable
+  const einsteinQuotes = [
+    "Life is like riding a bicycle. To keep your balance, you must keep moving.",
+    "In the middle of difficulty lies opportunity.",
+    "The only way to do great work is to love what you do.",
+    "Imagination is more important than knowledge.",
+    "Try not to become a person of success, but rather try to become a person of value.",
+    "The future belongs to those who believe in the beauty of their dreams.",
+    "It's not that I'm so smart, it's just that I stay with problems longer.",
+    "Weakness of attitude becomes weakness of character.",
+    "The important thing is not to stop questioning. Curiosity has its own reason for existence.",
+    "A person who never made a mistake never tried anything new."
+  ];
+
+  const getRandomEinsteinQuote = () => {
+    const randomIndex = Math.floor(Math.random() * einsteinQuotes.length);
+    return einsteinQuotes[randomIndex];
+  };
+
   const handleGenerate = async () => {
     if (!user) return;
 
@@ -33,15 +52,24 @@ export function PersonalizedMotivation() {
         topHabit = allHabits.reduce((prev, current) => (prev.streak > current.streak) ? prev : current);
       }
       
-      const result = await generateEncouragement({
-        habitName: topHabit?.name || 'making progress',
-        userName: user.username,
-        streakLength: topHabit?.streak || 1,
-      });
+      // Try to get AI-generated encouragement
+      try {
+        const result = await generateEncouragement({
+          habitName: topHabit?.name || 'making progress',
+          userName: user.username,
+          streakLength: topHabit?.streak || 1,
+        });
 
-      setMessage(result.encouragementMessage);
+        setMessage(result.encouragementMessage);
+      } catch (aiError) {
+        // If AI generation fails, fall back to Einstein quote
+        console.warn('AI encouragement failed, using fallback quote:', aiError);
+        const fallbackQuote = getRandomEinsteinQuote();
+        setMessage(`"${fallbackQuote}" - Albert Einstein`);
+      }
     } catch (error) {
-      console.error(error);
+      // Only show error toast for non-AI related errors
+      console.error('Non-AI error in motivation component:', error);
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
@@ -62,10 +90,17 @@ export function PersonalizedMotivation() {
         {message && (
             <Alert>
                 <Sparkles className="h-4 w-4" />
-                <AlertTitle>Your motivational boost!</AlertTitle>
+                <AlertTitle>
+                    {message.includes('Albert Einstein') ? 'Classic Wisdom' : 'Your motivational boost!'}
+                </AlertTitle>
                 <AlertDescription>
                     {message}
                 </AlertDescription>
+                {message.includes('Albert Einstein') && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                        AI service temporarily unavailable - here's some timeless wisdom instead!
+                    </p>
+                )}
             </Alert>
         )}
         <Button onClick={handleGenerate} disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
@@ -76,6 +111,9 @@ export function PersonalizedMotivation() {
           )}
           {isLoading ? 'Generating...' : 'Get a boost!'}
         </Button>
+        <p className="text-xs text-muted-foreground text-center">
+          {message.includes('Albert Einstein') ? 'Using fallback wisdom' : 'Powered by AI'}
+        </p>
       </CardContent>
     </Card>
   );
