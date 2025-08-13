@@ -2,8 +2,8 @@
 [
   {
     "id": 1,
-    "name": "User Name",
-    "email": "user@email.com",
+    "name": "Ahmed Ibrahim",
+    "email": "ibrahim@email.com",
     "avatar": "https://placehold.co/96x96.png",
     "groups": [
       { "groupId": "1", "rank": 1 },

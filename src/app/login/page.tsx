@@ -66,9 +66,10 @@ export default function LoginPage() {
             else if (emailName === 'mo') userId = 4;
             else if (emailName === 'sara') userId = 5;
             else if (emailName === 'ben') userId = 6;
+            else if (emailName === 'ibrahim') userId = 7;
             
             // Check if it's a valid demo user
-            const validDemoUsers = ['user', 'alex', 'jess', 'mo', 'sara', 'ben'];
+            const validDemoUsers = ['user', 'alex', 'jess', 'mo', 'sara', 'ben', 'ibrahim'];
             if (!validDemoUsers.includes(emailName)) {
                 setError('Invalid demo user. Please use one of the suggested emails.');
                 setIsLoading(false);
@@ -156,7 +157,7 @@ export default function LoginPage() {
                             )}
                         </Button>
                         <p className="text-xs text-muted-foreground">
-                            Demo: Try user@email.com, alex@email.com, jess@email.com, mo@email.com, sara@email.com, or ben@email.com
+                            Demo: Try user@email.com, alex@email.com, jess@email.com, mo@email.com, sara@email.com, ben@email.com, or ibrahim@email.com
                         </p>
                     </CardFooter>
                 </Card>
