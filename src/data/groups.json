@@ -1,0 +1,122 @@
+
+[
+  {
+    "id": "1",
+    "name": "Procrasti-haters",
+    "description": "For those who want to beat procrastination and get things done. We focus on productivity hacks and mutual support.",
+    "image": "https://placehold.co/600x400.png",
+    "tags": ["productivity", "focus"],
+    "aiHint": "team working",
+    "adminId": 1,
+    "members": [
+      { "userId": 1, "score": 1250, "rank": 1, "change": "up", "online": true },
+      { "userId": 2, "score": 1100, "rank": 2, "change": "down", "online": true },
+      { "userId": 3, "score": 980, "rank": 3, "change": "up", "online": false },
+      { "userId": 4, "score": 950, "rank": 4, "change": "down", "online": true }
+    ],
+    "habits": [
+      {
+        "id": "1",
+        "name": "Read for 15 minutes",
+        "icon": "BookOpen",
+        "streak": 12,
+        "goal": 7,
+        "completed": 5,
+        "color": "hsl(var(--chart-1))"
+      },
+      {
+        "id": "2",
+        "name": "Morning workout",
+        "icon": "Dumbbell",
+        "streak": 5,
+        "goal": 5,
+        "completed": 5,
+        "color": "hsl(var(--chart-2))"
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Early Birds Club",
+    "description": "Wake up and seize the day! This group is for people who want to build a consistent morning routine.",
+    "image": "https://placehold.co/600x400.png",
+    "tags": ["morning", "routine", "health"],
+    "aiHint": "sunrise yoga",
+    "adminId": 2,
+    "members": [],
+    "habits": []
+  },
+  {
+    "id": "3",
+    "name": "Fitness Fanatics",
+    "description": "Whether you're a gym rat or a home workout warrior, join us to stay motivated and accountable for your fitness goals.",
+    "image": "https://placehold.co/600x400.png",
+    "tags": ["fitness", "health", "exercise"],
+    "aiHint": "group workout",
+    "adminId": 5,
+    "members": [
+        { "userId": 5, "score": 1500, "rank": 1, "change": "up", "online": false }
+    ],
+    "habits": []
+  },
+  {
+    "id": "4",
+    "name": "Mindful Moments",
+    "description": "A space to cultivate mindfulness through meditation, journaling, and other reflective practices. All levels welcome.",
+    "image": "https://placehold.co/600x400.png",
+    "tags": ["meditation", "mental health", "journaling"],
+    "aiHint": "calm meditation",
+    "adminId": 3,
+    "members": [
+      { "userId": 1, "score": 2000, "rank": 3, "change": "up", "online": true },
+      { "userId": 3, "score": 2500, "rank": 1, "change": "up", "online": false }
+    ],
+    "habits": [
+       {
+        "id": "3",
+        "name": "Meditate for 10 minutes",
+        "icon": "HeartPulse",
+        "streak": 28,
+        "goal": 7,
+        "completed": 7,
+        "color": "hsl(var(--chart-3))"
+      }
+    ]
+  },
+    {
+    "id": "5",
+    "name": "Bookworms United",
+    "description": "Dedicated to the habit of reading. Share your current reads, find recommendations, and join reading sprints.",
+    "image": "https://placehold.co/600x400.png",
+    "tags": ["reading", "books", "learning"],
+    "aiHint": "reading books",
+    "adminId": 6,
+    "members": [
+      { "userId": 6, "score": 1800, "rank": 1, "change": "up", "online": true }
+    ],
+    "habits": []
+  },
+  {
+    "id": "6",
+    "name": "Hydration Nation",
+    "description": "A simple group with a simple goal: drink more water. Let's remind each other to stay hydrated and healthy.",
+    "image": "https://placehold.co/600x400.png",
+    "tags": ["health", "water"],
+    "aiHint": "drinking water",
+    "adminId": 1,
+    "members": [
+      { "userId": 1, "score": 500, "rank": 5, "change": "down", "online": true }
+    ],
+    "habits": [
+      {
+        "id": "4",
+        "name": "Drink 8 glasses of water",
+        "icon": "GlassWater",
+        "streak": 2,
+        "goal": 7,
+        "completed": 3,
+        "color": "hsl(var(--chart-4))"
+      }
+    ]
+  }
+]

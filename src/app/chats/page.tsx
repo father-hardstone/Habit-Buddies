@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { getChats } from '@/lib/data';
+import { getChatsForUser } from '@/lib/database';
+
+const CURRENT_USER_ID = 1; // In a real app, this would come from auth
 
 export default function ChatsPage() {
-  const chats = getChats();
+  const chats = getChatsForUser(CURRENT_USER_ID);
   return (
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">

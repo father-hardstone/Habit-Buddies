@@ -1,20 +1,34 @@
+
 'use client';
 import { NewHabitDialog } from './new-habit-dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import * as React from 'react';
+import { getJoinedGroups, getCurrentUser } from '@/lib/database';
 
-const joinedGroups = [
-  { id: '1', name: 'Procrasti-haters', isAdmin: true },
-  { id: '4', name: 'Mindful Moments', isAdmin: false },
-  { id: '6', name: 'Hydration Nation', isAdmin: false },
-  { id: '7', name: 'Bookworms', isAdmin: false },
-  { id: '8', name: 'Early Birds', isAdmin: false },
-  { id: '9', name: 'Fitness Fans', isAdmin: false },
-];
+const CURRENT_USER_ID = 1;
 
-export function Header() {
-  const [activeGroup, setActiveGroup] = React.useState(joinedGroups[0].id);
+interface HeaderProps {
+    activeGroup: string;
+    onActiveGroupChange: (groupId: string) => void;
+}
+
+export function Header({ activeGroup, onActiveGroupChange }: HeaderProps) {
+  const user = getCurrentUser();
+  const joinedGroups = getJoinedGroups(CURRENT_USER_ID);
+  
   const activeGroupData = joinedGroups.find(g => g.id === activeGroup);
+
+  if (!user || joinedGroups.length === 0) {
+    // Handle loading or empty state
+    return (
+       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
+        <div>
+          <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome! It looks like you're not in any groups yet.</p>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-10 flex flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:p-6">
@@ -23,10 +37,10 @@ export function Header() {
           <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, let's make today productive!</p>
         </div>
-        {activeGroupData?.isAdmin && <NewHabitDialog />}
+        {activeGroupData?.adminId === CURRENT_USER_ID && <NewHabitDialog />}
       </div>
       <div className="w-full overflow-x-auto">
-        <Tabs value={activeGroup} onValueChange={setActiveGroup}>
+        <Tabs value={activeGroup} onValueChange={onActiveGroupChange}>
           <TabsList>
             {joinedGroups.map((group) => (
               <TabsTrigger key={group.id} value={group.id}>

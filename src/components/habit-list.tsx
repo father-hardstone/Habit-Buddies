@@ -1,47 +1,15 @@
-'use client';
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { HabitCard, type Habit } from '@/components/habit-card';
-import { NewHabitDialog } from './new-habit-dialog';
 
-const initialHabits: Habit[] = [
-  {
-    id: '1',
-    name: 'Read for 15 minutes',
-    icon: 'BookOpen',
-    streak: 12,
-    goal: 7,
-    completed: 5,
-    color: 'hsl(var(--chart-1))',
-  },
-  {
-    id: '2',
-    name: 'Morning workout',
-    icon: 'Dumbbell',
-    streak: 5,
-    goal: 5,
-    completed: 5,
-    color: 'hsl(var(--chart-2))',
-  },
-  {
-    id: '3',
-    name: 'Meditate for 10 minutes',
-    icon: 'HeartPulse',
-    streak: 28,
-    goal: 7,
-    completed: 7,
-    color: 'hsl(var(--chart-3))',
-  },
-    {
-    id: '4',
-    name: 'Drink 8 glasses of water',
-    icon: 'GlassWater',
-    streak: 2,
-    goal: 7,
-    completed: 3,
-    color: 'hsl(var(--chart-4))',
-  },
-];
+'use client';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { HabitCard } from '@/components/habit-card';
+import { NewHabitDialog } from './new-habit-dialog';
+import type { Habit } from '@/lib/database';
+import { getHabitsForGroup } from '@/lib/database';
+
+interface HabitListProps {
+  groupId: string;
+}
 
 const habitColors = [
     'hsl(var(--chart-1))',
@@ -51,8 +19,13 @@ const habitColors = [
     'hsl(var(--chart-5))',
 ];
 
-export function HabitList() {
-    const [habits, setHabits] = useState<Habit[]>(initialHabits);
+export function HabitList({ groupId }: HabitListProps) {
+    const [habits, setHabits] = useState<Habit[]>([]);
+
+    useEffect(() => {
+      const groupHabits = getHabitsForGroup(groupId);
+      setHabits(groupHabits);
+    }, [groupId]);
 
     const addHabit = (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => {
         const habitToAdd: Habit = {
@@ -74,6 +47,9 @@ export function HabitList() {
         {habits.map((habit) => (
           <HabitCard key={habit.id} habit={habit} />
         ))}
+         {habits.length === 0 && (
+            <p className="text-muted-foreground col-span-2 text-center p-8">This group has no habits yet. Admins can add them!</p>
+        )}
       </CardContent>
     </Card>
   );

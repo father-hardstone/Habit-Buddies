@@ -1,3 +1,4 @@
+
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,30 +7,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { XCircle } from 'lucide-react';
+import { getCurrentUser, getJoinedGroups } from '@/lib/database';
 
-const joinedGroups = [
-  {
-    id: '1',
-    name: 'Procrasti-haters',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'team working',
-  },
-  {
-    id: '4',
-    name: 'Mindful Moments',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'calm meditation',
-  },
-    {
-    id: '6',
-    name: 'Hydration Nation',
-    image: 'https://placehold.co/600x400.png',
-    aiHint: 'drinking water',
-  },
-];
-
+const CURRENT_USER_ID = 1; // In a real app, this would come from auth
 
 export default function ProfilePage() {
+  const user = getCurrentUser();
+  const joinedGroups = getJoinedGroups(CURRENT_USER_ID);
+
+  if (!user) {
+    return (
+      <SidebarLayout>
+        <div className="p-8 text-center">User not found.</div>
+      </SidebarLayout>
+    );
+  }
+
   return (
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">
@@ -48,19 +41,19 @@ export default function ProfilePage() {
                 <CardContent className="space-y-6">
                   <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src="https://placehold.co/96x96.png" data-ai-hint="user avatar" />
-                      <AvatarFallback>U</AvatarFallback>
+                      <AvatarImage src={user.avatar} data-ai-hint="user avatar" />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <Button variant="outline">Change Photo</Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name</Label>
-                      <Input id="name" defaultValue="User Name" />
+                      <Input id="name" defaultValue={user.name} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" defaultValue="user@email.com" />
+                      <Input id="email" type="email" defaultValue={user.email} />
                     </div>
                   </div>
                 </CardContent>

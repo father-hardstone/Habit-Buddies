@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Send, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
-import type { Chat } from '@/lib/data';
+import type { DetailedChat } from '@/lib/database';
+
 
 interface ChatViewProps {
-  chat: Chat;
+  chat: NonNullable<DetailedChat>;
 }
 
 export function ChatView({ chat }: ChatViewProps) {

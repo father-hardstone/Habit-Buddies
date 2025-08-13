@@ -15,17 +15,13 @@ import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
+import type { GroupWithMembers } from '@/lib/database';
 
-type Member = {
-  name: string;
-  score: number;
-  rank: number;
-  avatar: string;
-  online: boolean;
-};
+type Member = NonNullable<GroupWithMembers>['members'][number];
 
 interface ChatPanelProps {
   member: Member;
+  groupName: string;
   children: React.ReactNode;
 }
 
@@ -35,7 +31,7 @@ const messages = [
     { id: 3, sender: 'other', text: 'For sure. Ready for the next one?' },
 ];
 
-export function ChatPanel({ member, children }: ChatPanelProps) {
+export function ChatPanel({ member, groupName, children }: ChatPanelProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -54,7 +50,7 @@ export function ChatPanel({ member, children }: ChatPanelProps) {
             <div className="flex-1">
               <SheetTitle className="text-left">{member.name}</SheetTitle>
               <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <span>Procrasti-haters</span>
+                <span>{groupName}</span>
                 <Badge variant="secondary">Rank #{member.rank}</Badge>
               </div>
             </div>

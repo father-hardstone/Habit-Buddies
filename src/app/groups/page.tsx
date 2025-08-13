@@ -1,68 +1,15 @@
+
 import { SidebarLayout } from '@/components/sidebar-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Users, PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-
-const groups = [
-  {
-    id: '1',
-    name: 'Procrasti-haters',
-    description: 'For those who want to beat procrastination and get things done. We focus on productivity hacks and mutual support.',
-    members: 12,
-    image: 'https://placehold.co/600x400.png',
-    tags: ['productivity', 'focus'],
-    aiHint: 'team working',
-  },
-  {
-    id: '2',
-    name: 'Early Birds Club',
-    description: 'Wake up and seize the day! This group is for people who want to build a consistent morning routine.',
-    members: 25,
-    image: 'https://placehold.co/600x400.png',
-    tags: ['morning', 'routine', 'health'],
-    aiHint: 'sunrise yoga',
-  },
-  {
-    id: '3',
-    name: 'Fitness Fanatics',
-    description: 'Whether you\'re a gym rat or a home workout warrior, join us to stay motivated and accountable for your fitness goals.',
-    members: 8,
-    image: 'https://placehold.co/600x400.png',
-    tags: ['fitness', 'health', 'exercise'],
-    aiHint: 'group workout',
-  },
-  {
-    id: '4',
-    name: 'Mindful Moments',
-    description: 'A space to cultivate mindfulness through meditation, journaling, and other reflective practices. All levels welcome.',
-    members: 31,
-    image: 'https://placehold.co/600x400.png',
-    tags: ['meditation', 'mental health', 'journaling'],
-    aiHint: 'calm meditation',
-  },
-    {
-    id: '5',
-    name: 'Bookworms United',
-    description: 'Dedicated to the habit of reading. Share your current reads, find recommendations, and join reading sprints.',
-    members: 18,
-    image: 'https://placehold.co/600x400.png',
-    tags: ['reading', 'books', 'learning'],
-    aiHint: 'reading books',
-  },
-  {
-    id: '6',
-    name: 'Hydration Nation',
-    description: 'A simple group with a simple goal: drink more water. Let\'s remind each other to stay hydrated and healthy.',
-    members: 42,
-    image: 'https://placehold.co/600x400.png',
-    tags: ['health', 'water'],
-    aiHint: 'drinking water',
-  },
-];
+import { getAllGroups } from '@/lib/database';
 
 export default function GroupsPage() {
+  const groups = getAllGroups();
+
   return (
     <SidebarLayout>
       <div className="flex flex-col min-h-screen">

@@ -1,0 +1,52 @@
+
+[
+  {
+    "id": 1,
+    "name": "User Name",
+    "email": "user@email.com",
+    "avatar": "https://placehold.co/96x96.png",
+    "groups": [
+      { "groupId": "1", "rank": 1 },
+      { "groupId": "4", "rank": 3 },
+      { "groupId": "6", "rank": 5 }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Alex",
+    "email": "alex@email.com",
+    "avatar": "https://placehold.co/40x40.png",
+    "groups": [{ "groupId": "1", "rank": 2 }]
+  },
+  {
+    "id": 3,
+    "name": "Jess",
+    "email": "jess@email.com",
+    "avatar": "https://placehold.co/40x40.png",
+    "groups": [
+        { "groupId": "1", "rank": 3 },
+        { "groupId": "4", "rank": 1 }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Mo",
+    "email": "mo@email.com",
+    "avatar": "https://placehold.co/40x40.png",
+    "groups": [{ "groupId": "1", "rank": 4 }]
+  },
+    {
+    "id": 5,
+    "name": "Sara",
+    "email": "sara@email.com",
+    "avatar": "https://placehold.co/40x40.png",
+    "groups": [{ "groupId": "3", "rank": 1 }]
+  },
+  {
+    "id": 6,
+    "name": "Ben",
+    "email": "ben@email.com",
+    "avatar": "https://placehold.co/40x40.png",
+    "groups": [{ "groupId": "5", "rank": 1 }]
+  }
+]
