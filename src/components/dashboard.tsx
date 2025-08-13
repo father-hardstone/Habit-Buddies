@@ -50,25 +50,21 @@ export function Dashboard() {
   }
 
   const addHabit = (newHabit: Omit<Habit, 'id' | 'streak' | 'completed' | 'color'>) => {
+        const currentGroupHabits = getHabitsForGroup(activeGroup);
         const habitToAdd: Habit = {
             ...newHabit,
-            id: `${activeGroup}-${(habits.length + 1)}-${new Date().getTime()}`, // more unique ID
+            id: `${activeGroup}-${(currentGroupHabits.length + 1)}-${new Date().getTime()}`, // more unique ID
             streak: 0,
             completed: 0,
-            color: habitColors[habits.length % habitColors.length],
+            color: habitColors[currentGroupHabits.length % habitColors.length],
         };
 
-        // In a real app, you'd send this to a server to be saved.
-        // For this prototype, we'll log it and I can use it to update the JSON file.
-        console.log('--- NEW HABIT DATA ---');
-        console.log('Group ID to update:', activeGroup);
-        console.log('Habit to add:', JSON.stringify(habitToAdd, null, 2));
-        console.log('----------------------');
-
-        const newHabits = [...habits, habitToAdd];
-        setHabits(newHabits);
+        const newHabits = [...currentGroupHabits, habitToAdd];
+        
         // This function updates the data in memory for this session
         updateGroupHabits(activeGroup, newHabits);
+        // We also update the local state to trigger a re-render
+        setHabits(newHabits);
     };
 
   return (
