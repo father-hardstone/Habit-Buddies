@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function WelcomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body overflow-x-hidden">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+             {/* Header */}
+       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
                 <Link href="/" className="flex items-center gap-2.5">
@@ -36,9 +36,9 @@ export default function WelcomePage() {
         </div>
       </header>
 
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative py-20 md:py-32">
+             <main className="flex-1 pt-16">
+         {/* Hero Section */}
+         <section className="relative py-20 md:py-32">
             <div className="absolute inset-0 -z-10 bg-grid-pattern opacity-5" />
             <div className="absolute inset-x-0 top-0 -z-20 m-auto h-[40rem] w-[80rem] bg-primary/10 blur-[12rem]" />
 
