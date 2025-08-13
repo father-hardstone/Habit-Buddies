@@ -6,14 +6,15 @@ import { Trophy, ArrowUp, ArrowDown, MessageCircle, Crown, User } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ChatPanel } from './chat-panel';
 
 const groupMembers = [
-  { name: 'You', score: 1250, rank: 1, avatar: 'https://placehold.co/40x40.png', change: 'up', isAdmin: true },
-  { name: 'Alex', score: 1100, rank: 2, avatar: 'https://placehold.co/40x40.png', change: 'down', isAdmin: false },
-  { name: 'Jess', score: 980, rank: 3, avatar: 'https://placehold.co/40x40.png', change: 'up', isAdmin: false },
-  { name: 'Mo', score: 950, rank: 4, avatar: 'https://placehold.co/40x40.png', change: 'down', isAdmin: false },
-  { name: 'Sara', score: 920, rank: 5, avatar: 'https://placehold.co/40x40.png', change: 'up', isAdmin: false },
-  { name: 'Ben', score: 880, rank: 6, avatar: 'https://placehold.co/40x40.png', change: 'down', isAdmin: false },
+  { name: 'You', score: 1250, rank: 1, avatar: 'https://placehold.co/40x40.png', change: 'up', isAdmin: true, online: true },
+  { name: 'Alex', score: 1100, rank: 2, avatar: 'https://placehold.co/40x40.png', change: 'down', isAdmin: false, online: true },
+  { name: 'Jess', score: 980, rank: 3, avatar: 'https://placehold.co/40x40.png', change: 'up', isAdmin: false, online: false },
+  { name: 'Mo', score: 950, rank: 4, avatar: 'https://placehold.co/40x40.png', change: 'down', isAdmin: false, online: true },
+  { name: 'Sara', score: 920, rank: 5, avatar: 'https://placehold.co/40x40.png', change: 'up', isAdmin: false, online: false },
+  { name: 'Ben', score: 880, rank: 6, avatar: 'https://placehold.co/40x40.png', change: 'down', isAdmin: false, online: true },
 ];
 
 export function GroupRanking() {
@@ -79,10 +80,12 @@ export function GroupRanking() {
                      <p className="text-sm text-muted-foreground">{member.score} points</p>
                   </div>
                   {member.name !== 'You' && (
-                    <Button variant="ghost" size="icon">
-                      <MessageCircle className="h-5 w-5" />
-                       <span className="sr-only">Message {member.name}</span>
-                    </Button>
+                    <ChatPanel member={member}>
+                      <Button variant="ghost" size="icon">
+                        <MessageCircle className="h-5 w-5" />
+                        <span className="sr-only">Message {member.name}</span>
+                      </Button>
+                    </ChatPanel>
                   )}
                    {member.isAdmin && (
                      <Crown className="h-5 w-5 text-warning" />
