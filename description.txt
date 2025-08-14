@@ -1,0 +1,32 @@
+# Habit Buddies: A Social Habit-Tracking Web Application
+
+## Project Overview
+
+Habit Buddies is a modern, full-stack web application designed to make habit formation engaging, social, and effective. The core principle is that accountability and community are powerful motivators. This app provides a platform for users to join groups, track shared habits, compete in friendly leaderboards, and communicate directly with their "buddies." To enhance the experience, the application leverages generative AI to provide personalized encouragement and playful accountability nudges, acting as a smart, supportive companion on the user's journey to self-improvement.
+
+The application is fully responsive, offering a seamless and intuitive experience across desktops, tablets, and mobile devices.
+
+## Key Features
+
+- **Responsive Design**: A fluid and adaptive UI that provides an optimal viewing experience on all devices, from large desktop screens to small mobile phones.
+- **Dynamic Dashboard**: A central hub where users can view their habits, track weekly progress with visually engaging circular progress bars, and monitor their streaks.
+- **Group System & Social Accountability**: Users can discover and join groups based on shared interests (e.g., "Fitness Fanatics," "Mindful Moments"). Within these groups, they can see a weekly leaderboard, fostering a sense of friendly competition and mutual support.
+- **AI-Powered Motivation**:
+    - **Personalized Encouragement**: An AI coach provides motivational messages tailored to the user's progress and habit streaks.
+    - **Accountability Nudges**: Users can send fun, AI-generated "nudge" messages to group members who are falling behind, promoting light-hearted accountability.
+- **Integrated Chat**: A real-time chat feature allows for direct communication between group members, fostering a stronger sense of community.
+- **Habit Analytics**: A "Weekly Report" chart visualizes habit completion data from the past seven days, giving users a clear and insightful overview of their performance.
+- **Modern UI/UX**: The interface is built with a focus on aesthetics and usability, featuring a clean, card-based layout, a consistent color scheme with light and dark modes, and smooth animations for a polished feel.
+- **Authentication**: A simple and secure mock authentication flow allows users to log in and access their personalized dashboard.
+
+## Technology Stack
+
+Habit Buddies is built with a cutting-edge, type-safe, and performant tech stack, demonstrating best practices in modern web development.
+
+- **Framework**: **Next.js** (with App Router) for a powerful, server-rendered React application.
+- **Language**: **TypeScript** for robust type-safety and improved developer experience.
+- **Styling**: **Tailwind CSS** for a utility-first approach to styling, enabling a highly customized and responsive design.
+- **UI Components**: **Shadcn UI** provides a set of beautifully designed, accessible, and reusable components that serve as the building blocks for the interface.
+- **Generative AI**: **Genkit** (integrated with Google's Gemini models) powers the intelligent features of the app, including the generation of motivational messages and accountability nudges.
+- **Charting**: **Recharts** is used to create the beautiful and interactive bar chart for the weekly habit analytics.
+- **Icons**: **Lucide React** for a clean, consistent, and lightweight icon set.
