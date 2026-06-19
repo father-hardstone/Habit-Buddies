@@ -1,0 +1,68 @@
+'use client';
+
+import Link from 'next/link';
+import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+type ErrorScreenProps = {
+  title?: string;
+  message?: string;
+  onRetry?: () => void;
+  homeHref?: string;
+  homeLabel?: string;
+  className?: string;
+  compact?: boolean;
+};
+
+export function ErrorScreen({
+  title = 'Something went wrong',
+  message = 'An unexpected error occurred. Please try again.',
+  onRetry,
+  homeHref = '/',
+  homeLabel = 'Go to dashboard',
+  className,
+  compact = false,
+}: ErrorScreenProps) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center text-center',
+        compact ? 'gap-4 p-6' : 'min-h-[50vh] gap-6 p-8',
+        className,
+      )}
+      role="alert"
+    >
+      <div
+        className={cn(
+          'flex items-center justify-center rounded-full bg-destructive/10 text-destructive',
+          compact ? 'size-12' : 'size-16',
+        )}
+      >
+        <AlertTriangle className={compact ? 'size-6' : 'size-8'} />
+      </div>
+
+      <div className="max-w-md space-y-2">
+        <h2 className={cn('font-bold font-headline', compact ? 'text-lg' : 'text-2xl')}>
+          {title}
+        </h2>
+        <p className="text-sm text-muted-foreground md:text-base">{message}</p>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {onRetry && (
+          <Button onClick={onRetry} className="gap-2">
+            <RefreshCw className="size-4" />
+            Try again
+          </Button>
+        )}
+        <Button variant="outline" asChild className="gap-2">
+          <Link href={homeHref} prefetch>
+            <Home className="size-4" />
+            {homeLabel}
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}

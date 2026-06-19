@@ -1,103 +1,89 @@
 # Habit Buddies
 
-Welcome to Habit Buddies, a social habit-tracking application designed to help you build better habits with the power of community and a little help from AI. Stop breaking promises to yourself; join a supportive group, track your progress, and finally make your habits stick!
+Social habit-tracking app with a Next.js frontend and NestJS backend.
 
-## Table of Contents
+## Monorepo layout
 
-- [Project Purpose](#project-purpose)
-- [Key Features](#key-features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the Application](#running-the-application)
-- [License](#license)
-- [Contact](#contact)
+```
+/
+├── frontend/           Next.js app (user + admin routes)
+├── backend/
+│   ├── databases/      JSON seed data (temporary; Supabase next)
+│   └── src/            NestJS API
+└── package.json
+```
 
-## Project Purpose
+## Environment setup
 
-Habit Buddies is a prototype application built to demonstrate a modern, full-stack web application. The core idea is that building habits is easier and more fun when you do it with others. This app provides a platform for users to form groups, define shared habits, track their progress, and motivate each other through friendly competition and direct communication.
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
+```
 
-## Key Features
+| Variable | Location | Purpose |
+|----------|----------|---------|
+| `FRONTEND_URL` | backend/.env | CORS for the app |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | backend/.env | Admin login credentials |
+| `NEXT_PUBLIC_API_URL` | frontend/.env.local | Backend API URL |
+| `JWT_SECRET` | backend/.env | JWT signing secret |
 
-- **Group System**: Join existing groups or create your own based on shared goals (e.g., "Fitness Fanatics," "Bookworms United").
-- **Habit Tracking**: Admins can add specific, trackable habits to a group (e.g., "Read for 15 minutes," "Morning workout").
-- **Social Leaderboard**: See how you rank against your buddies in your group's weekly progress chart.
-- **Direct Chat**: Communicate with other group members directly through a built-in chat feature.
-- **AI-Powered Motivation**:
-  - **Personalized Encouragement**: Get a motivational boost from an AI coach that uses your progress to generate personalized messages.
-  - **Accountability Nudges**: Send fun, light-hearted AI-generated "nudge" messages to group members who are falling behind to encourage them.
+Default URLs (fixed ports):
+- App: `http://localhost:3000`
+- Backend API: `http://localhost:3001/api`
 
-## Tech Stack
+Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api` in `frontend/.env.local` to match the backend port.
 
-This project is built with a modern, type-safe, and performant tech stack:
+## Getting started
 
-- **Framework**: [Next.js](https://nextjs.org/) (with App Router)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [Shadcn UI](https://ui.shadcn.com/)
-- **Generative AI**: [Genkit](https://firebase.google.com/docs/genkit) (with Google's Gemini models)
-- **Icons**: [Lucide React](https://lucide.dev/guide/packages/lucide-react)
+```bash
+npm install
+```
 
-## Getting Started
+Run each server in its own terminal:
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+```bash
+npm run dev:backend    # http://localhost:3001/api
+npm run dev:frontend   # http://localhost:3000
+```
 
-### Prerequisites
+Optional:
 
-- [Node.js](https://nodejs.org/) (version 20 or later recommended)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+```bash
+npm run genkit:dev     # AI features
+```
 
-### Installation
+### Admin routes
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/father-hardstone/Habit-Buddies.git
-    cd habit-buddies
-    ```
+Admin pages live in the same Next.js app:
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+1. Open `http://localhost:3000/admin/login`
+2. Sign in with credentials from `backend/.env` (default: `admin@habitbuddies.com` / `adminpassword123`)
+3. Dashboard at `/admin/dashboard` — stats, users, and groups
 
-3.  **Set up environment variables:**
-    This project uses Genkit with Google's Gemini models for its AI features. You will need a Gemini API key.
+### User app auth
 
-    - Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
-    - Create a new file named `.env.local` in the root of your project.
-    - Add your API key to the `.env.local` file:
-      ```
-      GEMINI_API_KEY=your_api_key_here
-      ```
-    *Note: The `.env.local` file is included in `.gitignore` by default in Next.js and should not be committed to version control.*
+1. Sign up or log in at `http://localhost:3000/login`
+2. Use a demo email from `backend/databases/users.json` (e.g. `ibrahim@email.com`) for sample data
 
-### Running the Application
+## API overview
 
-The application requires two processes to run concurrently: the Next.js development server and the Genkit developer UI. You will need to run the following commands in two separate terminal windows.
+**User auth** — `/api/auth/*`  
+**User data** — `/api/data/*` (JWT required)  
+**Admin** — `/api/admin/*` (admin JWT required)
 
-1.  **Terminal 1: Start the Genkit server:**
-    This command starts the Genkit development server, which runs your AI flows and provides a developer UI to inspect and test them.
+| Admin endpoint | Description |
+|----------------|-------------|
+| `POST /api/admin/login` | Admin sign in |
+| `GET /api/admin/stats` | Platform overview |
+| `GET /api/admin/users` | Registered users (SQLite) |
+| `GET /api/admin/demo-users` | Demo users (JSON) |
+| `GET /api/admin/groups` | Groups (JSON) |
 
-    ```bash
-    npm run genkit:dev
-    ```
-    This will typically start the Genkit UI on `http://localhost:4000`.
+## Tech stack
 
-2.  **Terminal 2: Start the Next.js development server:**
-    This command starts the main web application.
-
-    ```bash
-    npm run dev
-    ```
-    This will start the Habit Buddies app, usually on `http://localhost:9002`.
-
-Once both processes are running, you can open `http://localhost:9002` in your browser to use the application.
+- **Frontend:** Next.js 15, TypeScript, Tailwind, Shadcn UI, Genkit
+- **Backend:** NestJS, TypeORM + SQLite, JSON databases, JWT
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details.
-
----
-
-© 2024 Ahmed Ibrahim ([father-hardstone](https://github.com/father-hardstone)). All Rights Reserved.
+MIT
