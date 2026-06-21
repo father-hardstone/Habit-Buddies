@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
@@ -18,7 +18,15 @@ import { ConversationParticipant } from '../chats/entities/conversation-particip
 import { Message } from '../chats/entities/message.entity';
 import { entities } from './entities';
 
-config({ path: join(__dirname, '../../.env') });
+const backendEnvPath = [
+  join(process.cwd(), 'backend', '.env'),
+  join(process.cwd(), '.env'),
+  join(__dirname, '../../.env'),
+].find((path) => existsSync(path));
+
+if (backendEnvPath) {
+  config({ path: backendEnvPath });
+}
 
 type DemoUser = {
   id: number;

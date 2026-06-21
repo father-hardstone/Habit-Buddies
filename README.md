@@ -17,21 +17,21 @@ Social habit-tracking app with a Next.js frontend and NestJS backend.
 
 ```bash
 cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env.local
+cp frontend/.env.example frontend/.env
 ```
 
 | Variable | Location | Purpose |
 |----------|----------|---------|
-| `FRONTEND_URL` | backend/.env | CORS for the app |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | backend/.env | Admin login credentials |
-| `NEXT_PUBLIC_API_URL` | frontend/.env.local | Backend API URL |
-| `JWT_SECRET` | backend/.env | JWT signing secret |
+| `FRONTEND_URL` | `backend/.env` | CORS for the app |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | `backend/.env` | Admin login credentials |
+| `NEXT_PUBLIC_API_URL` | `frontend/.env` | Backend API URL |
+| `JWT_SECRET` | `backend/.env` | JWT signing secret |
 
 Default URLs (fixed ports):
 - App: `http://localhost:3000`
 - Backend API: `http://localhost:3001/api`
 
-Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api` in `frontend/.env.local` to match the backend port.
+Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api` in `frontend/.env` to match the backend port.
 
 ## Getting started
 

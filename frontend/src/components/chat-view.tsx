@@ -656,7 +656,7 @@ export function ChatView({
           Live updates need{' '}
           <code className="rounded bg-black/5 px-1">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
           <code className="rounded bg-black/5 px-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in{' '}
-          <code className="rounded bg-black/5 px-1">frontend/.env.local</code>.
+          <code className="rounded bg-black/5 px-1">frontend/.env</code>.
         </div>
       )}
 

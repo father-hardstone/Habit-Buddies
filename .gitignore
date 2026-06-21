@@ -50,10 +50,10 @@ frontend/next-env.d.ts
 .genkit/
 
 # environment (keep examples)
-.env
-.env.local
-.env.*.local
 backend/.env
+frontend/.env
+admin-panel/.env
+backend/.env.local
 frontend/.env.local
 admin-panel/.env.local
 !.env.example

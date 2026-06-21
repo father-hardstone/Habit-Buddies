@@ -15,16 +15,15 @@ import { RealtimeModule } from './realtime/realtime.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
 
-const envFilePaths = [
-  join(process.cwd(), '.env'),
-  join(process.cwd(), 'backend', '.env'),
-].filter((path) => existsSync(path));
+const backendEnvPath = [join(process.cwd(), 'backend', '.env'), join(process.cwd(), '.env')].find(
+  (path) => existsSync(path),
+);
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: envFilePaths.length > 0 ? envFilePaths : undefined,
+      envFilePath: backendEnvPath,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
