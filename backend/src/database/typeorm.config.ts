@@ -13,11 +13,14 @@ export function createTypeOrmOptions(
     );
   }
 
+  const isProduction = configService.get('NODE_ENV') === 'production';
+
   return {
     type: 'postgres',
     url: databaseUrl,
     ssl: { rejectUnauthorized: false },
     entities,
-    synchronize: configService.get('NODE_ENV', 'development') !== 'production',
+    synchronize: !isProduction,
+    logging: !isProduction,
   };
 }
