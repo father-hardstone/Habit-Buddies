@@ -15,7 +15,7 @@ import { RealtimeModule } from './realtime/realtime.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
 
-const backendEnvPath = [join(process.cwd(), 'backend', '.env'), join(process.cwd(), '.env')].find(
+const backendEnvPath = [join(process.cwd(), '.env'), join(process.cwd(), 'backend', '.env')].find(
   (path) => existsSync(path),
 );
 
