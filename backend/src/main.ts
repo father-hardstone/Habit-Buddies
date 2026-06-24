@@ -1,11 +1,12 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { INestApplication } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+async function configureApp(app: NestExpressApplication) {
   const configService = app.get(ConfigService);
 
   app.setGlobalPrefix('api');
@@ -39,11 +40,37 @@ async function bootstrap() {
         },
     credentials: true,
   });
+}
 
+let app: INestApplication | undefined;
+
+async function initApp() {
+  if (!app) {
+    const nestApp = await NestFactory.create<NestExpressApplication>(AppModule);
+    await configureApp(nestApp);
+    await nestApp.init();
+    app = nestApp;
+  }
+
+  return app;
+}
+
+async function bootstrap() {
+  const nestApp = await initApp();
+  const configService = nestApp.get(ConfigService);
   const port = Number(configService.get('PORT', 3001));
-  await app.listen(port);
+
+  await nestApp.listen(port);
 
   console.log(`API listening on http://localhost:${port}/api`);
 }
 
-bootstrap();
+export default async function vercelHandler(req: Request, res: Response) {
+  const nestApp = await initApp();
+  const handler = nestApp.getHttpAdapter().getInstance();
+  return handler(req, res);
+}
+
+if (!process.env.VERCEL) {
+  void bootstrap();
+}
