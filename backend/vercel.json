@@ -11,37 +11,7 @@
     "api/index.js": {
       "maxDuration": 30,
       "memory": 1024,
-      "includeFiles": [
-        "dist/**",
-        "node_modules/dayjs/**",
-        "node_modules/typeorm/**",
-        "node_modules/@sqltools/**",
-        "node_modules/sql-highlight/**",
-        "node_modules/reflect-metadata/**",
-        "node_modules/tslib/**",
-        "node_modules/pg/**",
-        "node_modules/pg-types/**",
-        "node_modules/pg-protocol/**",
-        "node_modules/pg-pool/**",
-        "node_modules/pg-connection-string/**",
-        "node_modules/pgpass/**",
-        "node_modules/postgres-array/**",
-        "node_modules/postgres-bytea/**",
-        "node_modules/postgres-date/**",
-        "node_modules/postgres-interval/**",
-        "node_modules/bcrypt/**",
-        "node_modules/@nestjs/**",
-        "node_modules/@supabase/**",
-        "node_modules/rxjs/**",
-        "node_modules/class-transformer/**",
-        "node_modules/class-validator/**",
-        "node_modules/validator/**",
-        "node_modules/libphonenumber-js/**",
-        "node_modules/passport/**",
-        "node_modules/passport-jwt/**",
-        "node_modules/passport-local/**",
-        "node_modules/dotenv/**"
-      ]
+      "includeFiles": "dist/**"
     }
   }
 }
