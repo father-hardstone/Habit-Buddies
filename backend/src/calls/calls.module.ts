@@ -6,11 +6,13 @@ import { CallsController } from './calls.controller';
 import { CallsService } from './calls.service';
 import { DailyService } from './daily.service';
 import { CallSession } from './entities/call-session.entity';
+import { Message } from '../chats/entities/message.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       CallSession,
+      Message,
       ConversationParticipant,
       User,
     ]),

@@ -16,8 +16,6 @@ coverage/
 # next.js
 frontend/.next/
 frontend/out/
-admin-panel/.next/
-admin-panel/out/
 .next/
 out/
 
@@ -52,10 +50,8 @@ frontend/next-env.d.ts
 # environment (keep examples)
 backend/.env
 frontend/.env
-admin-panel/.env
 backend/.env.local
 frontend/.env.local
-admin-panel/.env.local
 !.env.example
 !**/.env.example
 

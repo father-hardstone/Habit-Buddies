@@ -15,6 +15,7 @@ import { Button } from './ui/button';
 import Link from 'next/link';
 import { DashboardSkeleton } from './ui/skeleton-loaders';
 import { handleAsyncError } from '@/lib/error-utils';
+import { useGroupTabOrder } from '@/hooks/use-group-tab-order';
 
 const habitColors = [
     'hsl(var(--chart-1))',
@@ -34,6 +35,7 @@ export function Dashboard() {
   const [activeGroup, setActiveGroup] = React.useState('');
   const [habitsByGroup, setHabitsByGroup] = React.useState<Record<string, Habit[]>>({});
   const [isPageLoading, setIsPageLoading] = React.useState(true);
+  const { orderedGroups, reorderGroups } = useGroupTabOrder(user?.id, joinedGroups);
 
   const setHabitsForActiveGroup = React.useCallback(
     (value: React.SetStateAction<Habit[]>) => {
@@ -90,6 +92,7 @@ export function Dashboard() {
            joinedGroups={[]}
            activeGroup=""
            onActiveGroupChange={() => {}}
+           onGroupOrderChange={() => {}}
            addHabit={async () => {}}
          />
          <main className="flex flex-1 flex-col items-center justify-center p-8 text-center">
@@ -135,9 +138,10 @@ export function Dashboard() {
   return (
     <div className={dashboardShellClass}>
       <Header
-        joinedGroups={joinedGroups}
+        joinedGroups={orderedGroups}
         activeGroup={activeGroup}
         onActiveGroupChange={handleGroupChange}
+        onGroupOrderChange={reorderGroups}
         addHabit={addHabit}
       />
       <DashboardGroupContent

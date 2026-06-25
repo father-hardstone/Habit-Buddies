@@ -50,7 +50,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     const { admin: loggedInAdmin, accessToken } = await adminLogin(email, password);
     setAdminToken(accessToken);
     setAdmin(loggedInAdmin);
-    router.replace('/admin/dashboard');
+    router.replace('/admin');
   };
 
   const logout = () => {

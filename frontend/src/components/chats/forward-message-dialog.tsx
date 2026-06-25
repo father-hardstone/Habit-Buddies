@@ -52,8 +52,8 @@ export function ForwardMessageDialog({
         }
 
         return (
-          chat.name.toLowerCase().includes(normalized) ||
-          chat.groupName.toLowerCase().includes(normalized)
+          (chat.name ?? '').toLowerCase().includes(normalized) ||
+          (chat.groupName ?? '').toLowerCase().includes(normalized)
         );
       });
   }, [chats, currentChatId, query]);

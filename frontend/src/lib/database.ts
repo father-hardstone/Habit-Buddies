@@ -90,6 +90,8 @@ export type Chat = {
 
 export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read';
 
+import type { ChatCallMessage } from '@/lib/call-constants';
+
 export type MessageReplyTo = {
   id: string;
   text: string;
@@ -104,7 +106,10 @@ export type ChatMessage = {
   text: string;
   createdAt: string;
   pending?: boolean;
+  sendFailed?: boolean;
   status?: MessageStatus;
+  messageType?: 'text' | 'call';
+  call?: ChatCallMessage;
   replyTo?: MessageReplyTo;
 };
 
@@ -244,7 +249,7 @@ export function getChatById(chatId: string) {
 
 export function getChatMessages(
   chatId: string,
-  options: { limit?: number; before?: string } = {},
+  options: { limit?: number; before?: string; after?: string } = {},
 ) {
   const params = new URLSearchParams();
   if (options.limit != null) {
@@ -252,6 +257,9 @@ export function getChatMessages(
   }
   if (options.before) {
     params.set('before', options.before);
+  }
+  if (options.after) {
+    params.set('after', options.after);
   }
 
   const query = params.toString();

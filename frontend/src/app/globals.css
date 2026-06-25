@@ -152,4 +152,15 @@
     .chat-scroll--active::-webkit-scrollbar-thumb {
       background-color: hsl(var(--muted-foreground) / 0.35);
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-fade-up,
+      .animate-float,
+      .animate-shimmer,
+      .animate-pulse-soft {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
 }

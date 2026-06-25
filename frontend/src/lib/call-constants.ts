@@ -24,6 +24,8 @@ export type CallLogEntry = {
   durationSeconds: number | null;
 };
 
+export type ChatCallMessage = CallLogEntry;
+
 export type CallInvitePayload = {
   callId: string;
   chatId: string;
@@ -33,6 +35,9 @@ export type CallInvitePayload = {
   initiatorAvatar?: string;
   peerName: string;
   peerAvatar?: string;
+  peerUserId?: string;
+  roomUrl?: string;
+  token?: string;
   createdAt: string;
 };
 
@@ -66,6 +71,7 @@ export type ActiveCallState = {
   mode: CallMode;
   peerName: string;
   peerAvatar: string;
+  peerUserId?: string;
   roomUrl: string;
   token: string;
   role: 'caller' | 'callee';

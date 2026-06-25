@@ -14,8 +14,8 @@ export default function AdminError({
       error={error}
       reset={reset}
       title="Admin panel error"
-      homeHref="/admin/dashboard"
-      homeLabel="Back to admin dashboard"
+      homeHref="/admin"
+      homeLabel="Back to admin overview"
     />
   );
 }

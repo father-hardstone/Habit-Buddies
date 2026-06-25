@@ -1,10 +1,10 @@
 import { ConfigService } from '@nestjs/config';
-import { DataSourceOptions } from 'typeorm';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { entities } from './entities';
 
 export function createTypeOrmOptions(
   configService: ConfigService,
-): DataSourceOptions {
+): TypeOrmModuleOptions {
   const databaseUrl = configService.get<string>('DATABASE_URL');
 
   if (!databaseUrl) {
@@ -22,5 +22,9 @@ export function createTypeOrmOptions(
     entities,
     synchronize: !isProduction,
     logging: !isProduction,
+    // Fail fast on serverless so bad credentials don't burn the function
+    // timeout or trip Supabase's auth circuit breaker with repeated retries.
+    retryAttempts: isProduction ? 1 : 10,
+    retryDelay: 1000,
   };
 }

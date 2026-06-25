@@ -20,10 +20,14 @@ import {
   type CallConfirmTarget,
   type CallEventPayload,
   type CallInvitePayload,
+  type CallLogEntry,
   type CallPhase,
 } from '@/lib/call-constants';
 import { handleAsyncError } from '@/lib/error-utils';
+import { isCallTerminated, markCallTerminated } from '@/lib/call-invite-guard';
 import { broadcastCallEnd } from '@/lib/call-realtime';
+import { broadcastCallSignal } from '@/lib/call-signaling';
+import { retainUserInboxChannel } from '@/lib/user-inbox-channel';
 import {
   registerInboxCallListener,
   type InboxCallEvent,
@@ -36,6 +40,7 @@ type CallContextValue = {
   requestCall: (target: CallConfirmTarget) => void;
   activeCallChatId: string | null;
   liveCallId: string | null;
+  liveCallPreview: CallLogEntry | null;
   callRevision: number;
 };
 
@@ -57,6 +62,19 @@ type IncomingInviteState = CallInvitePayload & {
 
 function isPendingCallId(callId: string | undefined): boolean {
   return Boolean(callId?.startsWith('pending-'));
+}
+
+function isStaleRingingError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) {
+    return false;
+  }
+
+  if (error.status === 409) {
+    return true;
+  }
+
+  const message = (error.message ?? '').toLowerCase();
+  return message.includes('no longer ringing');
 }
 
 export function CallProvider({ children }: { children: React.ReactNode }) {
@@ -184,8 +202,18 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      markCallTerminated(payload.callId);
+
       const current = activeCallRef.current;
       const invite = incomingInviteRef.current;
+      const phase = phaseRef.current;
+
+      if (invite?.callId === payload.callId && phase === 'incoming' && !current) {
+        clearTimers();
+        setIncomingInvite(null);
+        resetToIdle();
+        return;
+      }
 
       if (
         current?.callId !== payload.callId &&
@@ -205,7 +233,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
       showEndedAndClose(message);
     },
-    [showEndedAndClose],
+    [clearTimers, resetToIdle, showEndedAndClose],
   );
 
   const startDurationTracking = React.useCallback(() => {
@@ -302,11 +330,33 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           mode: target.mode,
           peerName: target.peerName,
           peerAvatar: target.peerAvatar,
+          peerUserId: response.peerUserId,
           roomUrl: response.roomUrl,
           token: response.token,
           role: 'caller',
         };
         createdCall = nextCall;
+
+        broadcastCallSignal(
+          target.chatId,
+          [response.peerUserId],
+          'call_invite',
+          {
+            callId: response.call.id,
+            chatId: target.chatId,
+            mode: target.mode,
+            initiatorId: user?.id ?? '',
+            initiatorName: user?.username ?? 'Caller',
+            initiatorAvatar: user?.avatarUrl ?? '',
+            peerName: target.peerName,
+            peerAvatar: target.peerAvatar,
+            peerUserId: response.peerUserId,
+            roomUrl: response.roomUrl,
+            token: response.calleeToken,
+            createdAt: response.call.createdAt,
+          },
+          user?.id,
+        );
 
         setActiveCall(nextCall);
         setPhase('outgoing');
@@ -322,6 +372,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
               await markChatCallMissed(nextCall.chatId, nextCall.callId);
             } catch {
               // Ignore if already handled.
+            }
+
+            if (nextCall.peerUserId) {
+              markCallTerminated(nextCall.callId);
+
+              broadcastCallSignal(
+                nextCall.chatId,
+                [nextCall.peerUserId],
+                'call_missed',
+                {
+                  callId: nextCall.callId,
+                  chatId: nextCall.chatId,
+                  status: 'missed',
+                  mode: nextCall.mode,
+                  initiatorId: user?.id,
+                },
+                user?.id,
+              );
             }
 
             waitingForAnswerRef.current = false;
@@ -370,7 +438,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [bumpCallRevision, clearTimers, join, resetToIdle, showEndedAndClose, user?.username],
+    [bumpCallRevision, clearTimers, join, resetToIdle, showEndedAndClose, user?.avatarUrl, user?.id, user?.username],
   );
 
   const joinRoom = React.useCallback(
@@ -396,6 +464,45 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
+      const inviteHasJoinCredentials = Boolean(invite.roomUrl && invite.token);
+
+      if (inviteHasJoinCredentials) {
+        const nextCall: ActiveCallState = {
+          callId: invite.callId,
+          chatId: invite.chatId,
+          mode: invite.mode,
+          peerName: invite.initiatorName,
+          peerAvatar: invite.initiatorAvatar ?? invite.peerAvatar ?? '',
+          peerUserId: invite.initiatorId,
+          roomUrl: invite.roomUrl!,
+          token: invite.token!,
+          role: 'callee',
+        };
+
+        setIncomingInvite(null);
+        setActiveCall(nextCall);
+        waitingForAnswerRef.current = false;
+        bumpCallRevision();
+
+        broadcastCallSignal(
+          invite.chatId,
+          [invite.initiatorId],
+          'call_accept',
+          {
+            callId: invite.callId,
+            chatId: invite.chatId,
+            mode: invite.mode,
+            initiatorId: invite.initiatorId,
+            acceptedBy: user.id,
+          },
+          user.id,
+        );
+
+        void acceptChatCall(invite.chatId, invite.callId).catch(() => undefined);
+        await joinRoom(nextCall);
+        return;
+      }
+
       const response = await acceptChatCall(invite.chatId, invite.callId);
       const nextCall: ActiveCallState = {
         callId: invite.callId,
@@ -403,6 +510,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         mode: invite.mode,
         peerName: invite.initiatorName,
         peerAvatar: invite.initiatorAvatar ?? invite.peerAvatar ?? '',
+        peerUserId: invite.initiatorId,
         roomUrl: response.roomUrl,
         token: response.token,
         role: 'callee',
@@ -412,12 +520,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       setActiveCall(nextCall);
       waitingForAnswerRef.current = false;
       bumpCallRevision();
+
+      broadcastCallSignal(
+        invite.chatId,
+        [invite.initiatorId],
+        'call_accept',
+        {
+          callId: invite.callId,
+          chatId: invite.chatId,
+          mode: invite.mode,
+          initiatorId: invite.initiatorId,
+          acceptedBy: user.id,
+        },
+        user.id,
+      );
+
       await joinRoom(nextCall);
     } catch (error) {
-      const staleCall =
-        error instanceof ApiError &&
-        (error.status === 409 ||
-          error.message.toLowerCase().includes('no longer ringing'));
+      const staleCall = isStaleRingingError(error);
 
       if (staleCall) {
         setIncomingInvite(null);
@@ -457,8 +577,25 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     resetToIdle();
     bumpCallRevision();
 
+    markCallTerminated(invite.callId);
+
+    broadcastCallSignal(
+      invite.chatId,
+      [invite.initiatorId],
+      'call_decline',
+      {
+        callId: invite.callId,
+        chatId: invite.chatId,
+        status: 'declined',
+        mode: invite.mode,
+        initiatorId: invite.initiatorId,
+        declinedBy: user?.id,
+      },
+      user?.id,
+    );
+
     void declineChatCall(invite.chatId, invite.callId).catch(() => undefined);
-  }, [bumpCallRevision, resetToIdle]);
+  }, [bumpCallRevision, resetToIdle, user?.id]);
 
   const endActiveCall = React.useCallback(() => {
     if (isEndingRef.current || phaseRef.current === 'ended_message') {
@@ -481,6 +618,20 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         playCallDisconnected();
         setIncomingInvite(null);
         resetToIdle();
+        broadcastCallSignal(
+          invite.chatId,
+          [invite.initiatorId],
+          'call_decline',
+          {
+            callId: invite.callId,
+            chatId: invite.chatId,
+            status: 'declined',
+            mode: invite.mode,
+            initiatorId: invite.initiatorId,
+            declinedBy: user?.id,
+          },
+          user?.id,
+        );
         void declineChatCall(invite.chatId, invite.callId).catch(() => undefined);
       } else {
         isEndingRef.current = false;
@@ -502,10 +653,40 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    broadcastCallEnd(endedCall.chatId, endedCall.callId);
+    markCallTerminated(endedCall.callId);
+
+    const isPreAnswerCancel =
+      endedCall.role === 'caller' &&
+      waitingForAnswerRef.current &&
+      (phaseRef.current === 'outgoing' || phaseRef.current === 'starting');
+
+    if (isPreAnswerCancel) {
+      broadcastCallSignal(
+        endedCall.chatId,
+        endedCall.peerUserId ? [endedCall.peerUserId] : [],
+        'call_cancel',
+        {
+          callId: endedCall.callId,
+          chatId: endedCall.chatId,
+          status: 'declined',
+          mode: endedCall.mode,
+          initiatorId: user?.id,
+        },
+        user?.id,
+      );
+    } else {
+      broadcastCallEnd(
+        endedCall.chatId,
+        endedCall.callId,
+        'ended',
+        endedCall.peerUserId ? [endedCall.peerUserId] : [],
+        user?.id,
+      );
+    }
+
     void endChatCall(endedCall.chatId, endedCall.callId).catch(() => undefined);
     showEndedAndClose('Call ended. Returning to chat screen.', { playSound: true });
-  }, [clearTimers, invalidateOutbound, leave, resetToIdle, showEndedAndClose]);
+  }, [clearTimers, invalidateOutbound, leave, resetToIdle, showEndedAndClose, user?.id]);
 
   const continueCall = React.useCallback(() => {
     setStillThereOpen(false);
@@ -544,6 +725,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     const onInvite = (payload: CallInvitePayload) => {
       if (!payload?.callId || payload.initiatorId === userId) {
+        return;
+      }
+
+      if (isCallTerminated(payload.callId)) {
         return;
       }
 
@@ -600,7 +785,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       bumpCallRevision();
     };
 
-    const onEnd = (payload: CallEventPayload) => {
+    const onTerminal = (payload: CallEventPayload) => {
+      markCallTerminated(payload.callId);
       handleRemoteEnd(payload);
     };
 
@@ -613,9 +799,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           onAccept(payload as CallEventPayload);
           break;
         case 'call_decline':
+        case 'call_cancel':
         case 'call_end':
         case 'call_missed':
-          onEnd(payload as CallEventPayload);
+          onTerminal(payload as CallEventPayload);
           break;
         default:
           break;
@@ -629,6 +816,14 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     leave,
     user?.id,
   ]);
+
+  React.useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    return retainUserInboxChannel(user.id);
+  }, [user?.id]);
 
   React.useEffect(() => {
     setCallEventHandlers({
@@ -714,18 +909,54 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     [buildOutgoingPreview, clearTimers, resetToIdle, startOutgoingCall],
   );
 
-  const contextValue = React.useMemo<CallContextValue>(
-    () => ({
+  const contextValue = React.useMemo<CallContextValue>(() => {
+    let liveCallPreview: CallLogEntry | null = null;
+
+    if (activeCall && activeCall.chatId && !isPendingCallId(activeCall.callId)) {
+      liveCallPreview = {
+        id: activeCall.callId,
+        chatId: activeCall.chatId,
+        mode: activeCall.mode,
+        status:
+          phase === 'outgoing' || phase === 'starting'
+            ? 'ringing'
+            : phase === 'active' || phase === 'still_there' || phase === 'joining'
+              ? 'ongoing'
+              : 'ringing',
+        initiatorId:
+          activeCall.role === 'caller'
+            ? (user?.id ?? '')
+            : (activeCall.peerUserId ?? ''),
+        isOutgoing: activeCall.role === 'caller',
+        createdAt: new Date().toISOString(),
+        endedAt: null,
+        durationSeconds: null,
+      };
+    } else if (incomingInvite) {
+      liveCallPreview = {
+        id: incomingInvite.callId,
+        chatId: incomingInvite.chatId,
+        mode: incomingInvite.mode,
+        status: 'ringing',
+        initiatorId: incomingInvite.initiatorId,
+        isOutgoing: false,
+        createdAt: incomingInvite.createdAt,
+        endedAt: null,
+        durationSeconds: null,
+      };
+    }
+
+    return {
       requestCall,
       activeCallChatId: activeCall?.chatId ?? incomingInvite?.chatId ?? null,
       liveCallId:
         activeCall?.callId && !isPendingCallId(activeCall.callId)
           ? activeCall.callId
           : null,
+      liveCallPreview,
       callRevision,
-    }),
-    [activeCall, callRevision, incomingInvite, requestCall],
-  );
+    };
+  }, [activeCall, callRevision, incomingInvite, phase, requestCall, user?.id]);
 
   return (
     <CallContext.Provider value={contextValue}>

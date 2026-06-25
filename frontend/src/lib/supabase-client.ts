@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { ChatCallMessage } from '@/lib/call-constants';
 
 let client: SupabaseClient | null = null;
 
@@ -42,6 +43,8 @@ export type RealtimeChatMessagePayload = {
   senderId: string;
   text: string;
   createdAt: string;
+  messageType?: 'text' | 'call';
+  call?: ChatCallMessage;
   replyTo?: RealtimeChatMessageReplyPayload;
 };
 

@@ -6,6 +6,7 @@ import {
   type RealtimeChatMessagePayload,
 } from '@/lib/supabase-client';
 import { registerChatBroadcastSender } from '@/lib/chat-broadcast-bridge';
+import { subscribeChannelWithReconnect } from '@/lib/realtime-resilience';
 import type { ChatMessage } from '@/lib/database';
 
 const TYPING_HIDE_MS = 2500;
@@ -15,6 +16,7 @@ type ChatCallRealtimeEvent =
   | 'call_invite'
   | 'call_accept'
   | 'call_decline'
+  | 'call_cancel'
   | 'call_end'
   | 'call_missed';
 
@@ -24,6 +26,7 @@ type UseChatRealtimeOptions = {
   onPeerRead?: (readAt: string) => void;
   onMessageDeleted?: (messageId: string) => void;
   onCallEvent?: (event: ChatCallRealtimeEvent, payload: unknown) => void;
+  onReconnect?: () => void;
 };
 
 export function useChatRealtime(
@@ -32,19 +35,27 @@ export function useChatRealtime(
   currentUserName: string,
   options: UseChatRealtimeOptions,
 ) {
-  const { onMessage, onMessageDelivered, onPeerRead, onMessageDeleted, onCallEvent } =
-    options;
+  const {
+    onMessage,
+    onMessageDelivered,
+    onPeerRead,
+    onMessageDeleted,
+    onCallEvent,
+    onReconnect,
+  } = options;
 
   const onMessageRef = React.useRef(onMessage);
   const onMessageDeliveredRef = React.useRef(onMessageDelivered);
   const onPeerReadRef = React.useRef(onPeerRead);
   const onMessageDeletedRef = React.useRef(onMessageDeleted);
   const onCallEventRef = React.useRef(onCallEvent);
+  const onReconnectRef = React.useRef(onReconnect);
   onMessageRef.current = onMessage;
   onMessageDeliveredRef.current = onMessageDelivered;
   onPeerReadRef.current = onPeerRead;
   onMessageDeletedRef.current = onMessageDeleted;
   onCallEventRef.current = onCallEvent;
+  onReconnectRef.current = onReconnect;
 
   const [typingName, setTypingName] = React.useState<string | null>(null);
   const typingHideRef = React.useRef<ReturnType<typeof setTimeout>>();
@@ -75,6 +86,8 @@ export function useChatRealtime(
           senderId: data.senderId,
           text: data.text,
           createdAt: data.createdAt,
+          ...(data.messageType ? { messageType: data.messageType } : {}),
+          ...(data.call ? { call: data.call } : {}),
           ...(data.replyTo
             ? {
                 replyTo: {
@@ -158,13 +171,19 @@ export function useChatRealtime(
       .on('broadcast', { event: 'call_decline' }, ({ payload }) => {
         onCallEventRef.current?.('call_decline', payload);
       })
+      .on('broadcast', { event: 'call_cancel' }, ({ payload }) => {
+        onCallEventRef.current?.('call_cancel', payload);
+      })
       .on('broadcast', { event: 'call_end' }, ({ payload }) => {
         onCallEventRef.current?.('call_end', payload);
       })
       .on('broadcast', { event: 'call_missed' }, ({ payload }) => {
         onCallEventRef.current?.('call_missed', payload);
-      })
-      .subscribe();
+      });
+
+    const unsubscribeResilience = subscribeChannelWithReconnect(channel, {
+      onReconnect: () => onReconnectRef.current?.(),
+    });
 
     const unregisterBroadcaster = registerChatBroadcastSender(
       conversationId,
@@ -178,6 +197,7 @@ export function useChatRealtime(
     );
 
     return () => {
+      unsubscribeResilience();
       unregisterBroadcaster();
       channelRef.current = null;
       if (typingHideRef.current) {

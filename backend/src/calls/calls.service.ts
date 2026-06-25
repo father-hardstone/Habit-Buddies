@@ -6,9 +6,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Message } from '../chats/entities/message.entity';
 import { ConversationParticipant } from '../chats/entities/conversation-participant.entity';
 import { RealtimeService } from '../realtime/realtime.service';
 import { User } from '../users/user.entity';
+import { buildCallMessagePreview } from './call-message.util';
 import { DailyService } from './daily.service';
 import {
   CallSession,
@@ -23,6 +25,8 @@ export class CallsService {
   constructor(
     @InjectRepository(CallSession)
     private readonly callSessionsRepository: Repository<CallSession>,
+    @InjectRepository(Message)
+    private readonly messagesRepository: Repository<Message>,
     @InjectRepository(ConversationParticipant)
     private readonly participantsRepository: Repository<ConversationParticipant>,
     @InjectRepository(User)
@@ -66,21 +70,85 @@ export class CallsService {
     };
   }
 
-  private async broadcastCallEvent(
-    chatId: string,
-    participantUserIds: string[],
-    event: 'call_invite' | 'call_accept' | 'call_decline' | 'call_end' | 'call_missed',
-    payload: Record<string, unknown>,
-  ) {
-    this.realtimeService.broadcastCallEvent(chatId, event, payload);
+  private mapCallMessage(message: Message, userId: string) {
+    return {
+      id: message.id,
+      sender: message.senderId === userId ? ('me' as const) : ('other' as const),
+      senderId: message.senderId,
+      text: message.text,
+      createdAt: message.createdAt.toISOString(),
+      messageType: 'call' as const,
+      call: {
+        id: message.callSessionId ?? '',
+        chatId: message.conversationId,
+        mode: message.callMode ?? 'audio',
+        status: message.callStatus ?? 'ended',
+        initiatorId: message.senderId,
+        isOutgoing: message.senderId === userId,
+        createdAt: message.createdAt.toISOString(),
+        endedAt: message.callEndedAt?.toISOString() ?? null,
+        durationSeconds: message.callDurationSeconds,
+      },
+    };
+  }
 
-    for (const participantUserId of participantUserIds) {
-      this.realtimeService.broadcastInboxCallEvent(
-        participantUserId,
-        event,
-        payload,
-      );
+  private async persistCallMessage(
+    call: CallSession,
+    status: CallStatus,
+    durationSeconds: number | null,
+    endedAt: Date,
+  ) {
+    const existing = await this.messagesRepository.findOne({
+      where: { callSessionId: call.id },
+    });
+
+    if (existing) {
+      return existing;
     }
+
+    const preview = buildCallMessagePreview(call.mode, status, durationSeconds);
+
+    const message = await this.messagesRepository.save(
+      this.messagesRepository.create({
+        conversationId: call.conversationId,
+        senderId: call.initiatorId,
+        text: preview,
+        messageType: 'call',
+        callSessionId: call.id,
+        callMode: call.mode,
+        callStatus: status,
+        callDurationSeconds: durationSeconds,
+        callEndedAt: endedAt,
+        createdAt: call.createdAt,
+      }),
+    );
+
+    const participants = await this.participantsRepository.find({
+      where: { conversationId: call.conversationId },
+      select: { userId: true },
+    });
+
+    for (const participant of participants) {
+      const mapped = this.mapCallMessage(message, participant.userId);
+      this.realtimeService.broadcastNewMessage(call.conversationId, {
+        id: message.id,
+        conversationId: call.conversationId,
+        senderId: message.senderId,
+        text: message.text,
+        createdAt: message.createdAt.toISOString(),
+        messageType: 'call',
+        call: mapped.call,
+      });
+
+      this.realtimeService.broadcastInboxUpdate(participant.userId, {
+        chatId: call.conversationId,
+        latestMessage: preview,
+        timestamp: message.createdAt.toISOString(),
+        senderId: message.senderId,
+      });
+    }
+
+    return message;
   }
 
   private async finalizeCall(
@@ -104,30 +172,7 @@ export class CallsService {
 
     await this.callSessionsRepository.save(call);
     void this.dailyService.deleteRoom(call.dailyRoomName);
-
-    const participants = await this.participantsRepository.find({
-      where: { conversationId: call.conversationId },
-      select: { userId: true },
-    });
-
-    const event =
-      status === 'missed' || status === 'declined' ? 'call_missed' : 'call_end';
-
-    await this.broadcastCallEvent(
-      call.conversationId,
-      participants.map((entry) => entry.userId),
-      event,
-      {
-        callId: call.id,
-        chatId: call.conversationId,
-        status,
-        mode: call.mode,
-        initiatorId: call.initiatorId,
-        endedBy: endedByUserId ?? null,
-        durationSeconds,
-        endedAt: endedAt.toISOString(),
-      },
-    );
+    await this.persistCallMessage(call, status, durationSeconds, endedAt);
 
     return this.mapCallLog(call, endedByUserId ?? call.initiatorId);
   }
@@ -145,7 +190,7 @@ export class CallsService {
   }
 
   async createCall(chatId: string, userId: string, mode: CallMode) {
-    const { peer, participants } = await this.getParticipants(chatId, userId);
+    const { peer } = await this.getParticipants(chatId, userId);
 
     const existingOngoing = await this.callSessionsRepository.findOne({
       where: {
@@ -214,27 +259,18 @@ export class CallsService {
       true,
     );
 
-    await this.broadcastCallEvent(
-      chatId,
-      participants.map((entry) => entry.userId),
-      'call_invite',
-      {
-        callId: call.id,
-        chatId,
-        mode,
-        initiatorId: userId,
-        initiatorName: caller.name,
-        initiatorAvatar: caller.avatarUrl ?? '',
-        peerName: peer.user.name,
-        peerAvatar: peer.user.avatarUrl ?? '',
-        createdAt: call.createdAt.toISOString(),
-      },
+    const calleeToken = await this.dailyService.createMeetingToken(
+      room.name,
+      peer.user.name,
+      false,
     );
 
     return {
       call: this.mapCallLog(call, userId),
       roomUrl: room.url,
       token,
+      calleeToken,
+      peerUserId: peer.userId,
     };
   }
 
@@ -309,25 +345,6 @@ export class CallsService {
       throw new NotFoundException('Call not found');
     }
 
-    const participants = await this.participantsRepository.find({
-      where: { conversationId: chatId },
-      select: { userId: true },
-    });
-
-    await this.broadcastCallEvent(
-      chatId,
-      participants.map((entry) => entry.userId),
-      'call_accept',
-      {
-        callId: acceptedCall.id,
-        chatId,
-        mode: acceptedCall.mode,
-        initiatorId: acceptedCall.initiatorId,
-        acceptedBy: userId,
-        answeredAt: acceptedCall.answeredAt?.toISOString(),
-      },
-    );
-
     return this.issueCalleeJoinToken(acceptedCall, user);
   }
 
@@ -349,25 +366,6 @@ export class CallsService {
     if (call.initiatorId === userId) {
       throw new ForbiddenException('Caller cannot decline their own call');
     }
-
-    const participants = await this.participantsRepository.find({
-      where: { conversationId: chatId },
-      select: { userId: true },
-    });
-
-    await this.broadcastCallEvent(
-      chatId,
-      participants.map((entry) => entry.userId),
-      'call_decline',
-      {
-        callId: call.id,
-        chatId,
-        status: 'declined',
-        mode: call.mode,
-        initiatorId: call.initiatorId,
-        declinedBy: userId,
-      },
-    );
 
     return this.finalizeCall(call, 'declined', userId);
   }

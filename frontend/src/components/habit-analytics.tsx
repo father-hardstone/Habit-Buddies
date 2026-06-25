@@ -113,6 +113,13 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
       });
   }, [groupId, refreshKey]);
 
+  React.useEffect(() => {
+    setActiveDonutIndex(undefined);
+    setActiveRadialIndex(undefined);
+    setHoveredBarKey(null);
+    setHoveredLineKey(null);
+  }, [groupId, refreshKey, analytics]);
+
   const personalChartConfig = React.useMemo(() => {
     if (!analytics) return {} satisfies ChartConfig;
     return Object.fromEntries(
@@ -182,12 +189,27 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
 
   const animatedDonut = React.useMemo(
     () =>
-      (analytics?.scoreComposition ?? []).map((item) => ({
-        ...item,
-        animatedPoints: Number((item.points * progress).toFixed(2)),
-      })),
+      (analytics?.scoreComposition ?? []).map((item) => {
+        const animatedPoints = Number((item.points * progress).toFixed(2));
+        return {
+          ...item,
+          animatedPoints,
+          // Recharts omits zero-value sectors; keep a tiny slice during animation
+          // so tooltip/active-shape logic always has sectors to reference.
+          chartValue: animatedPoints > 0 ? animatedPoints : 0.001,
+        };
+      }),
     [analytics?.scoreComposition, progress],
   );
+
+  const safeDonutIndex =
+    activeDonutIndex != null && activeDonutIndex < animatedDonut.length
+      ? activeDonutIndex
+      : undefined;
+  const safeRadialIndex =
+    activeRadialIndex != null && activeRadialIndex < animatedRadial.length
+      ? activeRadialIndex
+      : undefined;
 
   const personalYMax = computeYAxisMax(
     animatedPersonal.map((row) => Number(row.points ?? 0)),
@@ -407,8 +429,8 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
                     cornerRadius={4}
                     isAnimationActive
                     animationDuration={1000}
-                    activeIndex={activeRadialIndex}
-                    activeShape={ActiveRadialSector}
+                    activeIndex={safeRadialIndex}
+                    activeShape={safeRadialIndex != null ? ActiveRadialSector : undefined}
                     onMouseEnter={(_, index) => setActiveRadialIndex(index)}
                     onMouseLeave={() => setActiveRadialIndex(undefined)}
                   >
@@ -460,48 +482,56 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
               </p>
             </div>
             <div className="flex flex-1 items-center justify-center">
-              <ChartContainer
-                config={Object.fromEntries(
-                  animatedDonut.map((item) => [
-                    item.id,
-                    { label: item.name, color: item.color },
-                  ]),
-                ) satisfies ChartConfig}
-                className={cn(
-                  'aspect-square h-[min(100%,7.5rem)] w-[min(100%,7.5rem)]',
-                  chartHoverContainerClass,
-                )}
-              >
-                <PieChart>
-                  <Pie
-                    data={animatedDonut}
-                    dataKey="animatedPoints"
-                    nameKey="name"
-                    innerRadius="48%"
-                    outerRadius="82%"
-                    strokeWidth={1}
-                    cx="50%"
-                    cy="50%"
-                    isAnimationActive
-                    animationDuration={1000}
-                    activeIndex={activeDonutIndex}
-                    activeShape={ActiveDonutSector}
-                    onMouseEnter={(_, index) => setActiveDonutIndex(index)}
-                    onMouseLeave={() => setActiveDonutIndex(undefined)}
-                  >
-                    {animatedDonut.map((entry) => (
-                      <Cell key={entry.id} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value, name) => [`${value} pts`, name]}
-                      />
-                    }
-                  />
-                </PieChart>
-              </ChartContainer>
+              {animatedDonut.length > 0 ? (
+                <ChartContainer
+                  config={Object.fromEntries(
+                    animatedDonut.map((item) => [
+                      item.id,
+                      { label: item.name, color: item.color },
+                    ]),
+                  ) satisfies ChartConfig}
+                  className={cn(
+                    'aspect-square h-[min(100%,7.5rem)] w-[min(100%,7.5rem)]',
+                    chartHoverContainerClass,
+                  )}
+                >
+                  <PieChart>
+                    <Pie
+                      data={animatedDonut}
+                      dataKey="chartValue"
+                      nameKey="name"
+                      innerRadius="48%"
+                      outerRadius="82%"
+                      strokeWidth={1}
+                      cx="50%"
+                      cy="50%"
+                      isAnimationActive={false}
+                      activeIndex={safeDonutIndex}
+                      activeShape={safeDonutIndex != null ? ActiveDonutSector : undefined}
+                      onMouseEnter={(_, index) => setActiveDonutIndex(index)}
+                      onMouseLeave={() => setActiveDonutIndex(undefined)}
+                    >
+                      {animatedDonut.map((entry) => (
+                        <Cell key={entry.id} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(_value, name, item) => {
+                            const payload = item.payload as (typeof animatedDonut)[number];
+                            return [`${payload.animatedPoints} pts`, name];
+                          }}
+                        />
+                      }
+                    />
+                  </PieChart>
+                </ChartContainer>
+              ) : (
+                <p className="px-2 text-center text-[10px] text-muted-foreground">
+                  No points logged yet
+                </p>
+              )}
             </div>
             <ul className="mt-1 max-h-[3.5rem] space-y-0.5 overflow-y-auto px-0.5 scrollbar-thin">
               {animatedDonut.length > 0 ? (

@@ -59,7 +59,7 @@ async function initApp() {
 async function bootstrap() {
   const nestApp = await initApp();
   const configService = nestApp.get(ConfigService);
-  const port = Number(configService.get('PORT', 3001));
+  const port = Number(configService.get('PORT', 4532));
 
   await nestApp.listen(port);
 

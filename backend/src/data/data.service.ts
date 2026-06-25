@@ -1039,6 +1039,13 @@ export class DataService {
       text: string;
       senderId: string;
       createdAt: Date;
+      messageType?: 'text' | 'call';
+      callSessionId?: string | null;
+      callMode?: 'audio' | 'video' | null;
+      callStatus?: string | null;
+      callDurationSeconds?: number | null;
+      callEndedAt?: Date | null;
+      conversationId?: string;
       replyToMessageId?: string | null;
       replyToText?: string | null;
       replyToSenderId?: string | null;
@@ -1060,7 +1067,7 @@ export class DataService {
           }
         : undefined;
 
-    return {
+    const base = {
       id: message.id,
       sender: isMe ? ('me' as const) : ('other' as const),
       senderId: message.senderId,
@@ -1071,6 +1078,26 @@ export class DataService {
         ? { status: this.senderMessageStatus(message.createdAt, peerLastReadAt) }
         : {}),
     };
+
+    if (message.messageType === 'call' && message.callSessionId) {
+      return {
+        ...base,
+        messageType: 'call' as const,
+        call: {
+          id: message.callSessionId,
+          chatId: message.conversationId ?? '',
+          mode: message.callMode ?? 'audio',
+          status: message.callStatus ?? 'ended',
+          initiatorId: message.senderId,
+          isOutgoing: isMe,
+          createdAt: message.createdAt.toISOString(),
+          endedAt: message.callEndedAt?.toISOString() ?? null,
+          durationSeconds: message.callDurationSeconds ?? null,
+        },
+      };
+    }
+
+    return base;
   }
 
   private async getChatContext(chatId: string, userId: string) {
@@ -1152,7 +1179,7 @@ export class DataService {
   async getChatMessages(
     chatId: string,
     userId: string,
-    options: { limit?: number; before?: string } = {},
+    options: { limit?: number; before?: string; after?: string } = {},
   ) {
     const context = await this.getChatContext(chatId, userId);
 
@@ -1162,6 +1189,28 @@ export class DataService {
 
     const limit = Math.min(Math.max(options.limit ?? 30, 1), 50);
     const { peerLastReadAt } = context;
+
+    if (options.after) {
+      const afterDate = new Date(options.after);
+      if (Number.isNaN(afterDate.getTime())) {
+        throw new BadRequestException('Invalid after cursor');
+      }
+
+      const rows = await this.messagesRepository
+        .createQueryBuilder('message')
+        .where('message.conversationId = :chatId', { chatId })
+        .andWhere('message.createdAt > :after', { after: afterDate })
+        .orderBy('message.createdAt', 'ASC')
+        .take(limit)
+        .getMany();
+
+      return {
+        messages: rows.map((message) =>
+          this.mapChatMessage(message, userId, peerLastReadAt),
+        ),
+        hasMore: false,
+      };
+    }
 
     const query = this.messagesRepository
       .createQueryBuilder('message')

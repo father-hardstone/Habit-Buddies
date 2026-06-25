@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { ErrorScreen } from '@/components/errors/error-screen';
 import { getErrorMessage } from '@/lib/error-utils';
 
@@ -9,6 +10,8 @@ type GlobalErrorScreenProps = {
 };
 
 export function GlobalErrorScreen({ error, reset }: GlobalErrorScreenProps) {
+  const router = useRouter();
+
   return (
     <html lang="en">
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
@@ -18,6 +21,10 @@ export function GlobalErrorScreen({ error, reset }: GlobalErrorScreenProps) {
           onRetry={reset}
           homeHref="/"
           homeLabel="Go home"
+          onNavigateHome={() => {
+            reset();
+            router.push('/');
+          }}
         />
       </body>
     </html>

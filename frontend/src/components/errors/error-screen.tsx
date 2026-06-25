@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ type ErrorScreenProps = {
   onRetry?: () => void;
   homeHref?: string;
   homeLabel?: string;
+  onNavigateHome?: () => void;
   className?: string;
   compact?: boolean;
 };
@@ -21,9 +22,21 @@ export function ErrorScreen({
   onRetry,
   homeHref = '/',
   homeLabel = 'Go to dashboard',
+  onNavigateHome,
   className,
   compact = false,
 }: ErrorScreenProps) {
+  const router = useRouter();
+
+  const handleNavigateHome = () => {
+    if (onNavigateHome) {
+      onNavigateHome();
+      return;
+    }
+
+    router.push(homeHref);
+  };
+
   return (
     <div
       className={cn(
@@ -56,11 +69,9 @@ export function ErrorScreen({
             Try again
           </Button>
         )}
-        <Button variant="outline" asChild className="gap-2">
-          <Link href={homeHref} prefetch>
-            <Home className="size-4" />
-            {homeLabel}
-          </Link>
+        <Button variant="outline" className="gap-2" onClick={handleNavigateHome}>
+          <Home className="size-4" />
+          {homeLabel}
         </Button>
       </div>
     </div>

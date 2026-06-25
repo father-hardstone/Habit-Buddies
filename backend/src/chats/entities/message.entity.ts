@@ -7,11 +7,13 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import type { CallMode, CallStatus } from '../../calls/entities/call-session.entity';
 import { User } from '../../users/user.entity';
 import { Conversation } from './conversation.entity';
 
 @Entity('messages')
 @Index(['conversationId', 'createdAt'])
+@Index(['callSessionId'])
 export class Message {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -24,6 +26,24 @@ export class Message {
 
   @Column({ type: 'text' })
   text: string;
+
+  @Column({ type: 'varchar', length: 16, default: 'text' })
+  messageType: 'text' | 'call';
+
+  @Column({ type: 'uuid', nullable: true })
+  callSessionId: string | null;
+
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  callMode: CallMode | null;
+
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  callStatus: CallStatus | null;
+
+  @Column({ type: 'int', nullable: true })
+  callDurationSeconds: number | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  callEndedAt: Date | null;
 
   @Column({ type: 'uuid', nullable: true })
   replyToMessageId: string | null;

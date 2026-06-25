@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { Chat } from '@/lib/database';
 import { formatChatListTime } from '@/lib/chat-time';
 import { useAuth } from '@/hooks/use-auth';
@@ -127,9 +128,9 @@ export function ChatListPanel({ className }: { className?: string }) {
 
     return chats.filter(
       (chat) =>
-        chat.name.toLowerCase().includes(query) ||
-        chat.latestMessage.toLowerCase().includes(query) ||
-        chat.groupName.toLowerCase().includes(query),
+        (chat.name ?? '').toLowerCase().includes(query) ||
+        (chat.latestMessage ?? '').toLowerCase().includes(query) ||
+        (chat.groupName ?? '').toLowerCase().includes(query),
     );
   }, [chats, search]);
 
@@ -144,10 +145,13 @@ export function ChatListPanel({ className }: { className?: string }) {
         className,
       )}
     >
-      <header className="shrink-0 border-b border-[#d1d7db] bg-[#f0f2f5] px-4 py-4 dark:border-border dark:bg-card">
-        <h1 className="mb-3 text-xl font-semibold text-[#111b21] dark:text-foreground">
-          Chats
-        </h1>
+      <header className="shrink-0 border-b border-[#d1d7db] bg-[#f0f2f5] px-3 py-3 dark:border-border dark:bg-card md:px-4 md:py-4">
+        <div className="mb-3 flex items-center gap-2">
+          <SidebarTrigger className="md:hidden" />
+          <h1 className="min-w-0 flex-1 truncate text-xl font-semibold text-[#111b21] dark:text-foreground">
+            Chats
+          </h1>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input

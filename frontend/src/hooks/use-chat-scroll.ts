@@ -3,12 +3,14 @@
 import * as React from 'react';
 
 const NEAR_BOTTOM_THRESHOLD = 120;
+const NEAR_TOP_THRESHOLD = 80;
 
 export function useChatScroll() {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const bottomRef = React.useRef<HTMLDivElement>(null);
   const isNearBottomRef = React.useRef(true);
   const [showBackToLatest, setShowBackToLatest] = React.useState(false);
+  const [isAtTop, setIsAtTop] = React.useState(false);
   const [isScrolling, setIsScrolling] = React.useState(false);
   const scrollHideTimerRef = React.useRef<number>();
 
@@ -21,9 +23,11 @@ export function useChatScroll() {
     const distanceFromBottom =
       element.scrollHeight - element.scrollTop - element.clientHeight;
     const nearBottom = distanceFromBottom <= NEAR_BOTTOM_THRESHOLD;
+    const nearTop = element.scrollTop <= NEAR_TOP_THRESHOLD;
 
     isNearBottomRef.current = nearBottom;
     setShowBackToLatest(!nearBottom);
+    setIsAtTop(nearTop);
   }, []);
 
   const handleScroll = React.useCallback(() => {
@@ -82,6 +86,7 @@ export function useChatScroll() {
     bottomRef,
     isNearBottomRef,
     showBackToLatest,
+    isAtTop,
     isScrolling,
     handleScroll,
     scrollToLatest,

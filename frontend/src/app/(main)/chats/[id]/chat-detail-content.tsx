@@ -1,42 +1,89 @@
 'use client';
 
 import { ChatView } from '@/components/chat-view';
-import { getChatById, type DetailedChat, type MessageStatus } from '@/lib/database';
+import { getChatById, type Chat, type DetailedChat, type MessageStatus } from '@/lib/database';
 import { notFound } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useChatsContext } from '@/components/chats/chats-context';
-import { ChatDetailContentSkeleton } from '@/components/ui/skeleton-loaders';
 import { handleAsyncError } from '@/lib/error-utils';
 import * as React from 'react';
 
+function chatListItemToDetailedChat(chat: Chat): DetailedChat {
+  return {
+    id: chat.id,
+    name: chat.name,
+    avatar: chat.avatar,
+    online: chat.online,
+    groupName: chat.groupName,
+    peerLastReadAt: null,
+    messages: [],
+  };
+}
+
 export function ChatDetailPageContent({ chatId }: { chatId: string }) {
   const { user } = useAuth();
-  const { updateChatPreview, clearUnread, updateChatListMessageStatus } =
+  const { chats, updateChatPreview, clearUnread, updateChatListMessageStatus } =
     useChatsContext();
-  const [chat, setChat] = React.useState<DetailedChat | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const listChat = React.useMemo(
+    () => chats.find((entry) => entry.id === chatId) ?? null,
+    [chatId, chats],
+  );
+  const [chat, setChat] = React.useState<DetailedChat | null>(
+    () => (listChat ? chatListItemToDetailedChat(listChat) : null),
+  );
+
+  React.useEffect(() => {
+    if (listChat) {
+      setChat((current) => {
+        if (current?.peerLastReadAt) {
+          return current;
+        }
+
+        return chatListItemToDetailedChat(listChat);
+      });
+    }
+  }, [listChat]);
 
   React.useEffect(() => {
     if (!user) {
       return;
     }
 
-    setIsLoading(true);
+    let cancelled = false;
+
     getChatById(chatId)
       .then((result) => {
-        setChat(result);
+        if (cancelled) {
+          return;
+        }
+
         if (result) {
-          clearUnread(chatId);
+          setChat(result);
+        } else if (!listChat) {
+          setChat(null);
         }
       })
       .catch((error) => {
-        handleAsyncError(error, {
-          title: 'Could not load chat',
-          context: 'chats.detail',
-        });
-      })
-      .finally(() => setIsLoading(false));
-  }, [chatId, user, clearUnread]);
+        if (!cancelled) {
+          handleAsyncError(error, {
+            title: 'Could not load chat',
+            context: 'chats.detail',
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chatId, user]);
+
+  React.useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    clearUnread(chatId);
+  }, [chatId, clearUnread, user]);
 
   const handleChatActivity = React.useCallback(
     (update: {
@@ -60,17 +107,19 @@ export function ChatDetailPageContent({ chatId }: { chatId: string }) {
     [chatId, updateChatListMessageStatus],
   );
 
-  if (isLoading) {
-    return <ChatDetailContentSkeleton />;
+  if (!user) {
+    return null;
   }
 
-  if (!chat || !user) {
+  const activeChat = chat ?? (listChat ? chatListItemToDetailedChat(listChat) : null);
+
+  if (!activeChat) {
     notFound();
   }
 
   return (
     <ChatView
-      chat={chat}
+      chat={activeChat}
       currentUserId={user.id}
       embedded
       onChatActivity={handleChatActivity}

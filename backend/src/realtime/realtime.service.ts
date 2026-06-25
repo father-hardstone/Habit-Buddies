@@ -18,6 +18,18 @@ export type RealtimeMessagePayload = {
   senderId: string;
   text: string;
   createdAt: string;
+  messageType?: 'text' | 'call';
+  call?: {
+    id: string;
+    chatId: string;
+    mode: 'audio' | 'video';
+    status: string;
+    initiatorId: string;
+    isOutgoing: boolean;
+    createdAt: string;
+    endedAt: string | null;
+    durationSeconds: number | null;
+  };
   replyTo?: RealtimeMessageReplyPayload;
 };
 

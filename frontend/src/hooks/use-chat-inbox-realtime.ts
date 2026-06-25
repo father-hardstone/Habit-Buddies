@@ -1,17 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import {
-  getSupabaseClient,
-  type RealtimeInboxPayload,
-  type RealtimeInboxPeerReadPayload,
+import type {
+  RealtimeInboxPayload,
+  RealtimeInboxPeerReadPayload,
 } from '@/lib/supabase-client';
-import { emitInboxCallEvent, INBOX_CALL_EVENTS } from '@/lib/inbox-call-bridge';
+import { registerUserInboxListener } from '@/lib/user-inbox-channel';
 
 type UseChatInboxRealtimeOptions = {
   onInboxUpdate: (update: RealtimeInboxPayload) => void;
   onInboxRead: (chatId: string) => void;
   onInboxPeerRead: (payload: RealtimeInboxPeerReadPayload) => void;
+  onReconnect?: () => void;
 };
 
 export function useChatInboxRealtime(
@@ -21,60 +21,49 @@ export function useChatInboxRealtime(
   const onInboxUpdateRef = React.useRef(options.onInboxUpdate);
   const onInboxReadRef = React.useRef(options.onInboxRead);
   const onInboxPeerReadRef = React.useRef(options.onInboxPeerRead);
+  const onReconnectRef = React.useRef(options.onReconnect);
   onInboxUpdateRef.current = options.onInboxUpdate;
   onInboxReadRef.current = options.onInboxRead;
   onInboxPeerReadRef.current = options.onInboxPeerRead;
+  onReconnectRef.current = options.onReconnect;
 
   React.useEffect(() => {
-    const supabase = getSupabaseClient();
-    if (!supabase || !userId) {
+    if (!userId) {
       return;
     }
 
-    const channel = supabase.channel(`inbox:${userId}`);
-
-    channel
-      .on('broadcast', { event: 'inbox_update' }, ({ payload }) => {
-        const data = payload as RealtimeInboxPayload;
-        if (!data?.chatId) {
-          return;
+    return registerUserInboxListener(
+      userId,
+      (event, payload) => {
+        switch (event) {
+          case 'inbox_update': {
+            const data = payload as RealtimeInboxPayload;
+            if (data?.chatId) {
+              onInboxUpdateRef.current(data);
+            }
+            break;
+          }
+          case 'inbox_read': {
+            const data = payload as { chatId?: string };
+            if (data?.chatId) {
+              onInboxReadRef.current(data.chatId);
+            }
+            break;
+          }
+          case 'inbox_peer_read': {
+            const data = payload as RealtimeInboxPeerReadPayload;
+            if (data?.chatId && data.readAt) {
+              onInboxPeerReadRef.current(data);
+            }
+            break;
+          }
+          default:
+            break;
         }
-
-        onInboxUpdateRef.current(data);
-      })
-      .on(
-        'broadcast',
-        { event: 'inbox_read' },
-        ({ payload }: { payload: { chatId?: string } }) => {
-          if (!payload?.chatId) {
-            return;
-          }
-
-          onInboxReadRef.current(payload.chatId);
-        },
-      )
-      .on(
-        'broadcast',
-        { event: 'inbox_peer_read' },
-        ({ payload }: { payload: RealtimeInboxPeerReadPayload }) => {
-          if (!payload?.chatId || !payload.readAt) {
-            return;
-          }
-
-          onInboxPeerReadRef.current(payload);
-        },
-      );
-
-    for (const event of INBOX_CALL_EVENTS) {
-      channel.on('broadcast', { event }, ({ payload }) => {
-        emitInboxCallEvent(event, payload);
-      });
-    }
-
-    channel.subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+      },
+      {
+        onReconnect: () => onReconnectRef.current?.(),
+      },
+    );
   }, [userId]);
 }

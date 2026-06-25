@@ -8,11 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
   ArrowDown,
+  AlertTriangle,
   Check,
   ChevronUp,
   Loader2,
   MoreVertical,
   Phone,
+  RotateCw,
   Send,
   Smile,
   Video,
@@ -20,14 +22,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, DetailedChat, MessageStatus } from '@/lib/database';
-import { addMessageToChat, deleteMessageFromChat, markChatRead } from '@/lib/database';
-import { buildCombinedChatTimeline, applyCallRealtimeEvent } from '@/lib/call-timeline';
-import type { CallLogEntry } from '@/lib/call-constants';
-import { getChatCallHistory } from '@/lib/calls-api';
+import { deleteMessageFromChat, getChatMessages, markChatRead } from '@/lib/database';
+import { buildMessageTimeline } from '@/lib/call-timeline';
 import { formatMessageTime } from '@/lib/chat-time';
 import { useChatRealtime } from '@/hooks/use-chat-realtime';
 import { useChatMessages } from '@/hooks/use-chat-messages';
 import { useChatScroll } from '@/hooks/use-chat-scroll';
+import { useMessageSendQueue } from '@/hooks/use-message-send-queue';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { isChatRealtimeEnabled } from '@/lib/supabase-client';
 import { handleAsyncError } from '@/lib/error-utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -106,6 +108,7 @@ function MessageBubble({
   onReply,
   onForward,
   onDelete,
+  onRetry,
 }: {
   message: ChatMessage;
   peerAvatar: string;
@@ -119,10 +122,12 @@ function MessageBubble({
   onReply: () => void;
   onForward: () => void;
   onDelete?: () => void;
+  onRetry?: () => void;
 }) {
   const isMe = message.sender === 'me';
   const nameColor = peerNameColor(peerName);
-  const canDelete = isMe && !message.pending && Boolean(onDelete);
+  const canDelete = isMe && !message.pending && !message.sendFailed && Boolean(onDelete);
+  const showFailed = isMe && message.sendFailed;
 
   return (
     <div
@@ -156,6 +161,12 @@ function MessageBubble({
           onCopy={onCopy}
           onReply={onReply}
           onForward={onForward}
+        />
+      ) : null}
+      {showFailed ? (
+        <AlertTriangle
+          className="mb-1 size-4 shrink-0 text-destructive"
+          aria-hidden
         />
       ) : null}
       {isMe ? (
@@ -227,10 +238,24 @@ function MessageBubble({
             )}
           >
             {formatMessageTime(message.createdAt)}
-            {isMe && <MessageStatusIcon status={message.pending ? 'pending' : message.status} />}
+            {isMe && !message.sendFailed && (
+              <MessageStatusIcon status={message.pending ? 'pending' : message.status} />
+            )}
           </span>
         </div>
       </div>
+      {showFailed && onRetry ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="mb-0.5 size-8 shrink-0 text-destructive hover:text-destructive"
+          onClick={onRetry}
+          aria-label="Retry sending message"
+        >
+          <RotateCw className="size-4" />
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -245,16 +270,14 @@ export function ChatView({
   const router = useRouter();
   const { user } = useAuth();
   const { chats } = useChatsContext();
-  const { requestCall, activeCallChatId, liveCallId, callRevision } = useCallContext();
+  const { requestCall, activeCallChatId, liveCallPreview, callRevision } = useCallContext();
   const [chatMeta, setChatMeta] = React.useState(initialChat);
   const [newMessage, setNewMessage] = React.useState('');
-  const [isSending, setIsSending] = React.useState(false);
   const [isAvatarViewOpen, setIsAvatarViewOpen] = React.useState(false);
   const [replyingTo, setReplyingTo] = React.useState<ChatMessage | null>(null);
   const [forwardMessage, setForwardMessage] = React.useState<ChatMessage | null>(null);
   const [messageToDelete, setMessageToDelete] = React.useState<ChatMessage | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const [callLogs, setCallLogs] = React.useState<CallLogEntry[]>([]);
   const stickToBottomRef = React.useRef(false);
   const deliveredOnLoadRef = React.useRef<string | null>(null);
   const messagesRef = React.useRef<ChatMessage[]>([]);
@@ -264,10 +287,12 @@ export function ChatView({
     bottomRef,
     isNearBottomRef,
     showBackToLatest,
+    isAtTop,
     isScrolling,
     handleScroll,
     scrollToLatest,
     scrollToLatestInstant,
+    updateScrollState,
   } = useChatScroll();
 
   const {
@@ -278,6 +303,7 @@ export function ChatView({
     visibleIds,
     loadOlderMessages,
     upsertMessage,
+    mergeMessages,
     replaceMessage,
     removeMessage,
     updateMessages,
@@ -285,34 +311,49 @@ export function ChatView({
     restorePrependScrollAnchor,
   } = useChatMessages({
     chatId: chatMeta.id,
+    currentUserId,
     peerLastReadAt: chatMeta.peerLastReadAt,
   });
 
   messagesRef.current = messages;
 
+  const handleSentMessage = React.useCallback(
+    ({
+      text,
+      saved,
+    }: {
+      text: string;
+      saved: ChatMessage;
+    }) => {
+      onChatActivity?.({
+        latestMessage: text,
+        timestamp: saved.createdAt,
+        senderId: currentUserId,
+        status: 'sent',
+      });
+    },
+    [currentUserId, onChatActivity],
+  );
+
+  const { enqueueMessage, retryFailedMessage } = useMessageSendQueue({
+    chatId: chatMeta.id,
+    currentUserId,
+    upsertMessage,
+    replaceMessage,
+    updateMessages,
+    onSent: handleSentMessage,
+    onScrollToLatest: () => {
+      stickToBottomRef.current = true;
+      scrollToLatestInstant();
+      window.setTimeout(() => {
+        stickToBottomRef.current = false;
+      }, 100);
+    },
+  });
+
   React.useEffect(() => {
     setChatMeta(initialChat);
   }, [initialChat]);
-
-  React.useEffect(() => {
-    let cancelled = false;
-
-    getChatCallHistory(chatMeta.id)
-      .then((entries) => {
-        if (!cancelled) {
-          setCallLogs(entries);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCallLogs([]);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [chatMeta.id, callRevision]);
 
   const handleStartCall = (mode: 'audio' | 'video') => {
     requestCall({
@@ -343,6 +384,39 @@ export function ChatView({
     },
     [onChatActivity, scrollToLatestInstant, upsertMessage],
   );
+
+  const syncMissedMessages = React.useCallback(async () => {
+    if (isLoadingInitial) {
+      return;
+    }
+
+    const anchor = [...messagesRef.current]
+      .reverse()
+      .find((message) => !message.pending);
+
+    if (!anchor?.createdAt) {
+      return;
+    }
+
+    try {
+      const page = await getChatMessages(chatMeta.id, {
+        after: anchor.createdAt,
+        limit: 50,
+      });
+
+      if (page.messages.length === 0) {
+        return;
+      }
+
+      mergeMessages(page.messages);
+
+      if (stickToBottomRef.current) {
+        scrollToLatestInstant();
+      }
+    } catch {
+      // Realtime will retry on the next reconnect.
+    }
+  }, [chatMeta.id, isLoadingInitial, mergeMessages, scrollToLatestInstant]);
 
   const handleMessageDelivered = React.useCallback(
     (messageId: string) => {
@@ -418,29 +492,6 @@ export function ChatView({
     }
   }, [chatMeta.id, isDeleting, messageToDelete, removeMessage]);
 
-  const handleCallRealtimeEvent = React.useCallback(
-    (
-      event:
-        | 'call_invite'
-        | 'call_accept'
-        | 'call_decline'
-        | 'call_end'
-        | 'call_missed',
-      payload: unknown,
-    ) => {
-      setCallLogs((prev) =>
-        applyCallRealtimeEvent(
-          prev,
-          event,
-          payload as Parameters<typeof applyCallRealtimeEvent>[2],
-          chatMeta.id,
-          currentUserId,
-        ),
-      );
-    },
-    [chatMeta.id, currentUserId],
-  );
-
   const { typingName, notifyTyping, ackMessageDelivered } = useChatRealtime(
     chatMeta.id,
     currentUserId,
@@ -450,9 +501,19 @@ export function ChatView({
       onMessageDelivered: handleMessageDelivered,
       onPeerRead: handlePeerRead,
       onMessageDeleted: handleMessageDeleted,
-      onCallEvent: handleCallRealtimeEvent,
+      onReconnect: () => {
+        void syncMissedMessages();
+      },
     },
   );
+
+  React.useEffect(() => {
+    if (isLoadingInitial) {
+      return;
+    }
+
+    void syncMissedMessages();
+  }, [callRevision, isLoadingInitial, syncMissedMessages]);
 
   React.useEffect(() => {
     if (deliveredOnLoadRef.current === chatMeta.id) {
@@ -497,8 +558,11 @@ export function ChatView({
       return;
     }
 
-    requestAnimationFrame(() => scrollToLatestInstant());
-  }, [chatMeta.id, isLoadingInitial, scrollToLatestInstant]);
+    requestAnimationFrame(() => {
+      scrollToLatestInstant();
+      updateScrollState();
+    });
+  }, [chatMeta.id, isLoadingInitial, scrollToLatestInstant, updateScrollState]);
 
   React.useEffect(() => {
     if (isNearBottomRef.current) {
@@ -513,21 +577,18 @@ export function ChatView({
     });
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     const text = newMessage.trim();
-    if (!text || isSending) return;
+    if (!text) return;
 
-    const optimisticId = `pending-${Date.now()}`;
     const replyTarget = replyingTo;
-    const optimisticMessage: ChatMessage = {
-      id: optimisticId,
-      sender: 'me',
-      senderId: currentUserId,
+
+    setNewMessage('');
+    setReplyingTo(null);
+
+    enqueueMessage({
       text,
-      createdAt: new Date().toISOString(),
-      pending: true,
-      status: 'pending',
       ...(replyTarget
         ? {
             replyTo: {
@@ -538,44 +599,7 @@ export function ChatView({
             },
           }
         : {}),
-    };
-
-    setNewMessage('');
-    setReplyingTo(null);
-    setIsSending(true);
-    stickToBottomRef.current = true;
-    upsertMessage(optimisticMessage);
-    scrollToLatestInstant();
-
-    try {
-      const saved = await addMessageToChat(chatMeta.id, text, {
-        replyToMessageId: replyTarget?.id,
-      });
-      replaceMessage(
-        (entry) => entry.id === optimisticId,
-        { ...saved, status: saved.status ?? 'sent' },
-      );
-      scrollToLatestInstant();
-      onChatActivity?.({
-        latestMessage: text,
-        timestamp: saved.createdAt,
-        senderId: currentUserId,
-        status: 'sent',
-      });
-    } catch (error) {
-      stickToBottomRef.current = false;
-      removeMessage((entry) => entry.id === optimisticId);
-      setNewMessage(text);
-      handleAsyncError(error, {
-        title: 'Message not sent',
-        context: 'chat.send',
-      });
-    } finally {
-      setIsSending(false);
-      window.setTimeout(() => {
-        stickToBottomRef.current = false;
-      }, 100);
-    }
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -585,8 +609,15 @@ export function ChatView({
     }
   };
 
-  const timeline = buildCombinedChatTimeline(messages, callLogs);
-  const isCallLiveInChat = activeCallChatId === chatMeta.id;
+  const timeline = buildMessageTimeline(messages);
+  const isCallLiveInChat = activeCallChatId === chatMeta.id && liveCallPreview != null;
+  const showLiveCallPreview =
+    isCallLiveInChat &&
+    liveCallPreview != null &&
+    !messages.some(
+      (message) =>
+        message.messageType === 'call' && message.call?.id === liveCallPreview.id,
+    );
 
   return (
     <div
@@ -595,7 +626,8 @@ export function ChatView({
         embedded ? 'h-full min-h-0' : 'h-[100dvh]',
       )}
     >
-      <header className="z-10 flex shrink-0 items-center gap-3 border-b border-[#d1d7db] bg-[#f0f2f5] px-3 py-2 shadow-sm dark:border-border dark:bg-card md:px-4">
+      <header className="z-10 flex shrink-0 items-center gap-2 border-b border-[#d1d7db] bg-[#f0f2f5] px-2 py-2 shadow-sm dark:border-border dark:bg-card md:gap-3 md:px-4">
+        <SidebarTrigger className="md:hidden" />
         <Button
           variant="ghost"
           size="icon"
@@ -678,7 +710,7 @@ export function ChatView({
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Loading messages…</p>
           </div>
-        ) : messages.length === 0 && callLogs.length === 0 ? (
+        ) : messages.length === 0 && !showLiveCallPreview ? (
           <div className="flex h-full min-h-[12rem] items-center justify-center">
             <div className="rounded-xl bg-[#fff9] px-4 py-3 text-center text-sm text-muted-foreground shadow-sm backdrop-blur dark:bg-card/80">
               Messages are end-to-end inspired. Say hi to {chatMeta.name}!
@@ -686,7 +718,7 @@ export function ChatView({
           </div>
         ) : (
           <div className="flex w-full flex-col gap-2">
-            {hasMoreOlder && (
+            {hasMoreOlder && isAtTop && (
               <div className="sticky top-0 z-10 flex justify-center py-2">
                 <Button
                   type="button"
@@ -711,6 +743,15 @@ export function ChatView({
               </div>
             )}
 
+            {showLiveCallPreview && liveCallPreview ? (
+              <CallTimelineItem
+                key={`live-call-${liveCallPreview.id}`}
+                call={liveCallPreview}
+                peerName={chatMeta.name}
+                isLive
+              />
+            ) : null}
+
             {timeline.map((item, index) => {
               if (item.type === 'day') {
                 return (
@@ -728,12 +769,6 @@ export function ChatView({
                     key={item.id}
                     call={item.call}
                     peerName={chatMeta.name}
-                    isLive={
-                      isCallLiveInChat &&
-                      (item.call.status === 'ongoing' ||
-                        item.call.status === 'ringing') &&
-                      item.call.id === liveCallId
-                    }
                   />
                 );
               }
@@ -767,8 +802,13 @@ export function ChatView({
                   onReply={() => handleReplyToMessage(item.message)}
                   onForward={() => handleForwardMessage(item.message)}
                   onDelete={
-                    isMe && !item.message.pending
+                    isMe && !item.message.pending && !item.message.sendFailed
                       ? () => setMessageToDelete(item.message)
+                      : undefined
+                  }
+                  onRetry={
+                    isMe && item.message.sendFailed
+                      ? () => retryFailedMessage(item.message)
                       : undefined
                   }
                 />
@@ -836,14 +876,13 @@ export function ChatView({
                 className="min-h-11 rounded-full border-0 bg-white px-4 py-6 shadow-sm dark:bg-muted"
                 value={newMessage}
                 onChange={handleInputChange}
-                disabled={isSending}
               />
             </div>
             <Button
               type="submit"
               size="icon"
               className="size-11 shrink-0 rounded-full bg-[#25d366] text-white hover:bg-[#20bd5a]"
-              disabled={isSending || !newMessage.trim()}
+              disabled={!newMessage.trim()}
             >
               {newMessage.trim() ? (
                 <Send className="size-5" />

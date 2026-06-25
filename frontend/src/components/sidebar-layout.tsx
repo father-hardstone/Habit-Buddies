@@ -15,7 +15,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +23,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useSidebarHover } from '@/hooks/use-sidebar-hover';
 import { NavLinkIcon, NavLinkLabel } from './nav-link-status';
 import { useUnreadChatsCount } from '@/components/chats/chats-context';
 import { cn } from '@/lib/utils';
@@ -222,6 +222,7 @@ function SidebarLogoutButton() {
 function SidebarLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
+  const { handleMouseEnter, handleMouseLeave } = useSidebarHover();
   const unreadChatsCount = useUnreadChatsCount();
 
   const closeMobile = React.useCallback(() => {
@@ -234,7 +235,13 @@ function SidebarLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Sidebar collapsible="icon" variant="inset" className="border-sidebar-border">
+      <Sidebar
+        collapsible="icon"
+        variant="inset"
+        className="border-sidebar-border"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <SidebarHeader className="border-b border-sidebar-border/80 pb-3">
           <Logo />
         </SidebarHeader>
@@ -265,8 +272,6 @@ function SidebarLayoutInner({ children }: { children: React.ReactNode }) {
           <SidebarProfileCard onNavigate={closeMobile} />
           <SidebarLogoutButton />
         </SidebarFooter>
-
-        <SidebarRail />
       </Sidebar>
 
       <SidebarInset className="flex h-svh max-h-svh flex-col overflow-hidden bg-muted/30 md:h-[calc(100svh-1rem)] md:max-h-[calc(100svh-1rem)]">
@@ -278,7 +283,7 @@ function SidebarLayoutInner({ children }: { children: React.ReactNode }) {
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider defaultOpen={false}>
       <SidebarLayoutInner>{children}</SidebarLayoutInner>
     </SidebarProvider>
   );

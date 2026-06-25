@@ -180,12 +180,14 @@ export class DataController {
     @CurrentUser() user: AuthenticatedUser,
     @Query('limit') limit?: string,
     @Query('before') before?: string,
+    @Query('after') after?: string,
   ) {
     const parsedLimit = Number.parseInt(limit ?? '30', 10);
 
     return this.dataService.getChatMessages(id, user.id, {
       limit: Number.isFinite(parsedLimit) ? parsedLimit : 30,
       before,
+      after,
     });
   }
 

@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4532/api';
 const TOKEN_KEY = 'accessToken';
 const ADMIN_TOKEN_KEY = 'adminAccessToken';
 

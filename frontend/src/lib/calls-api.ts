@@ -5,6 +5,8 @@ export type CreateCallResponse = {
   call: CallLogEntry;
   roomUrl: string;
   token: string;
+  calleeToken: string;
+  peerUserId: string;
 };
 
 export type JoinCallResponse = {

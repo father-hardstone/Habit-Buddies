@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getChatsForUser, type Chat, type MessageStatus } from '@/lib/database';
+import { warmChatMessageCache } from '@/lib/chat-message-cache';
 import { useAuth } from '@/hooks/use-auth';
 import { useChatInboxRealtime } from '@/hooks/use-chat-inbox-realtime';
 import {
@@ -171,9 +172,13 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (user?.id) {
+        void warmChatMessageCache(chatId, user.id);
+      }
+
       router.push(`/chats/${chatId}`);
     },
-    [deselectChat, router, selectedChatId],
+    [deselectChat, router, selectedChatId, user?.id],
   );
 
   const clearUnread = React.useCallback((chatId: string) => {

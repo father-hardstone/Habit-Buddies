@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { ErrorScreen } from '@/components/errors/error-screen';
 import { getErrorMessage, showErrorToast } from '@/lib/error-utils';
 
@@ -19,6 +20,8 @@ export function RouteError({
   homeHref = '/',
   homeLabel = 'Go to dashboard',
 }: RouteErrorProps) {
+  const router = useRouter();
+
   React.useEffect(() => {
     showErrorToast(error, {
       title: 'Page error',
@@ -33,6 +36,10 @@ export function RouteError({
       onRetry={reset}
       homeHref={homeHref}
       homeLabel={homeLabel}
+      onNavigateHome={() => {
+        reset();
+        router.push(homeHref);
+      }}
     />
   );
 }

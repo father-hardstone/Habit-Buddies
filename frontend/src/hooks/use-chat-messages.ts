@@ -2,6 +2,18 @@
 
 import * as React from 'react';
 import { getChatMessages, type ChatMessage } from '@/lib/database';
+import { mergeMessagesInOrder } from '@/lib/chat-message-order';
+import {
+  deleteCachedMessage,
+  deleteCachedMessages,
+  getCachedChatMessages,
+  getCachedHasMoreOlder,
+  getMemoryCachedChatMessages,
+  putCachedMessage,
+  putCachedMessages,
+  setCachedHasMoreOlder,
+  setMemoryCachedChatMessages,
+} from '@/lib/chat-message-cache';
 import { enrichOutgoingMessages } from '@/lib/message-status';
 import { handleAsyncError } from '@/lib/error-utils';
 
@@ -11,20 +23,44 @@ export const CHAT_LOAD_MORE_SIZE = 10;
 
 type UseChatMessagesOptions = {
   chatId: string;
+  currentUserId: string;
   peerLastReadAt?: string | null;
   enabled?: boolean;
 };
 
+function persistMessages(chatId: string, userId: string, messages: ChatMessage[]) {
+  setMemoryCachedChatMessages(chatId, userId, messages);
+  void putCachedMessages(chatId, userId, messages).catch(() => undefined);
+}
+
+function readMemorySnapshot(
+  chatId: string,
+  currentUserId: string,
+  peerLastReadAt?: string | null,
+): ChatMessage[] {
+  const memory = getMemoryCachedChatMessages(chatId, currentUserId);
+  if (!memory?.length) {
+    return [];
+  }
+
+  return enrichOutgoingMessages(memory, peerLastReadAt);
+}
+
 export function useChatMessages({
   chatId,
+  currentUserId,
   peerLastReadAt,
   enabled = true,
 }: UseChatMessagesOptions) {
-  const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  const initialSnapshot = readMemorySnapshot(chatId, currentUserId, peerLastReadAt);
+
+  const [messages, setMessages] = React.useState<ChatMessage[]>(initialSnapshot);
   const [hasMoreOlder, setHasMoreOlder] = React.useState(false);
-  const [isLoadingInitial, setIsLoadingInitial] = React.useState(true);
+  const [isLoadingInitial, setIsLoadingInitial] = React.useState(initialSnapshot.length === 0);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
-  const [visibleIds, setVisibleIds] = React.useState<Set<string>>(new Set());
+  const [visibleIds, setVisibleIds] = React.useState<Set<string>>(
+    () => new Set(initialSnapshot.map((message) => message.id)),
+  );
   const revealTimersRef = React.useRef<number[]>([]);
   const prependAnchorRef = React.useRef<{ scrollHeight: number; scrollTop: number } | null>(
     null,
@@ -45,6 +81,11 @@ export function useChatMessages({
         return;
       }
 
+      if (immediate) {
+        setVisibleIds(new Set(batch.map((message) => message.id)));
+        return;
+      }
+
       const priority = batch.slice(-CHAT_PRIORITY_COUNT);
       setVisibleIds((prev) => {
         const next = new Set(prev);
@@ -56,52 +97,123 @@ export function useChatMessages({
 
       const deferred = batch.slice(0, Math.max(0, batch.length - CHAT_PRIORITY_COUNT));
       deferred.forEach((message, index) => {
-        const delay = immediate ? 0 : 70 * (index + 1);
         const timer = window.setTimeout(() => {
           setVisibleIds((prev) => new Set(prev).add(message.id));
-        }, delay);
+        }, 70 * (index + 1));
         revealTimersRef.current.push(timer);
       });
     },
     [clearRevealTimers],
   );
 
-  React.useEffect(() => {
-    if (!enabled || !chatId) {
+  React.useLayoutEffect(() => {
+    if (!enabled || !chatId || !currentUserId) {
       return;
     }
 
     let cancelled = false;
-    setIsLoadingInitial(true);
-    setMessages([]);
-    setVisibleIds(new Set());
-    setHasMoreOlder(false);
     clearRevealTimers();
 
-    getChatMessages(chatId, { limit: CHAT_INITIAL_PAGE_SIZE })
-      .then((page) => {
+    const memorySnapshot = readMemorySnapshot(chatId, currentUserId, peerLastReadAt);
+    const hadMemory = memorySnapshot.length > 0;
+
+    if (hadMemory) {
+      setMessages(memorySnapshot);
+      scheduleReveal(memorySnapshot, true);
+      setIsLoadingInitial(false);
+    } else {
+      setMessages([]);
+      setVisibleIds(new Set());
+      setHasMoreOlder(false);
+      setIsLoadingInitial(true);
+    }
+
+    const loadChat = async () => {
+      try {
+        const [cached, cachedHasMore] = await Promise.all([
+          hadMemory ? Promise.resolve(memorySnapshot) : getCachedChatMessages(chatId, currentUserId),
+          getCachedHasMoreOlder(chatId, currentUserId),
+        ]);
+
         if (cancelled) {
           return;
         }
 
-        const enriched = enrichOutgoingMessages(page.messages, peerLastReadAt);
-        setMessages(enriched);
-        setHasMoreOlder(page.hasMore);
-        scheduleReveal(enriched);
-      })
-      .catch((error) => {
+        const cachedEnriched = hadMemory
+          ? memorySnapshot
+          : enrichOutgoingMessages(cached, peerLastReadAt);
+        const hadCache = cachedEnriched.length > 0;
+
+        if (hadCache && !hadMemory) {
+          setMessages(cachedEnriched);
+          setHasMoreOlder(cachedHasMore);
+          scheduleReveal(cachedEnriched, true);
+          setIsLoadingInitial(false);
+        } else if (hadCache) {
+          setHasMoreOlder(cachedHasMore);
+        }
+
+        const latestCached = cachedEnriched.at(-1);
+        let serverMessages: ChatMessage[] = [];
+        let nextHasMoreOlder = hadCache ? cachedHasMore : false;
+
+        if (!hadCache) {
+          const page = await getChatMessages(chatId, { limit: CHAT_INITIAL_PAGE_SIZE });
+          if (cancelled) {
+            return;
+          }
+
+          serverMessages = page.messages;
+          nextHasMoreOlder = page.hasMore;
+        } else {
+          const [newerPage, recentPage] = await Promise.all([
+            latestCached
+              ? getChatMessages(chatId, { after: latestCached.createdAt, limit: 50 })
+              : Promise.resolve({ messages: [], hasMore: false }),
+            getChatMessages(chatId, { limit: CHAT_INITIAL_PAGE_SIZE }),
+          ]);
+
+          if (cancelled) {
+            return;
+          }
+
+          serverMessages = mergeMessagesInOrder(newerPage.messages, recentPage.messages);
+
+          const recentOldest = recentPage.messages[0]?.createdAt;
+          const cacheHasOlderBeyondRecent =
+            cachedEnriched.length > 0 &&
+            recentOldest != null &&
+            cachedEnriched[0].createdAt < recentOldest;
+
+          nextHasMoreOlder = cacheHasOlderBeyondRecent || recentPage.hasMore;
+        }
+
+        const serverEnriched = enrichOutgoingMessages(serverMessages, peerLastReadAt);
+        const merged = mergeMessagesInOrder(
+          hadCache ? cachedEnriched : [],
+          serverEnriched,
+        );
+
+        setMessages(merged);
+        setHasMoreOlder(nextHasMoreOlder);
+        scheduleReveal(merged, hadCache || hadMemory);
+        persistMessages(chatId, currentUserId, merged);
+        void setCachedHasMoreOlder(chatId, currentUserId, nextHasMoreOlder);
+      } catch (error) {
         if (!cancelled) {
           handleAsyncError(error, {
             title: 'Could not load messages',
             context: 'chat.messages.initial',
           });
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setIsLoadingInitial(false);
         }
-      });
+      }
+    };
+
+    void loadChat();
 
     return () => {
       cancelled = true;
@@ -109,7 +221,7 @@ export function useChatMessages({
     };
     // Only refetch when switching chats — not when read receipts update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatId, enabled, scheduleReveal, clearRevealTimers]);
+  }, [chatId, currentUserId, enabled, scheduleReveal, clearRevealTimers]);
 
   const loadOlderMessages = React.useCallback(async () => {
     if (isLoadingMore || !hasMoreOlder || messages.length === 0) {
@@ -130,10 +242,13 @@ export function useChatMessages({
       setMessages((prev) => {
         const existingIds = new Set(prev.map((message) => message.id));
         const uniqueOlder = enriched.filter((message) => !existingIds.has(message.id));
-        return [...uniqueOlder, ...prev];
+        const next = [...uniqueOlder, ...prev];
+        persistMessages(chatId, currentUserId, next);
+        return next;
       });
 
       setHasMoreOlder(page.hasMore);
+      void setCachedHasMoreOlder(chatId, currentUserId, page.hasMore);
 
       setVisibleIds((prev) => {
         const next = new Set(prev);
@@ -150,7 +265,14 @@ export function useChatMessages({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [chatId, hasMoreOlder, isLoadingMore, messages, peerLastReadAt]);
+  }, [
+    chatId,
+    currentUserId,
+    hasMoreOlder,
+    isLoadingMore,
+    messages,
+    peerLastReadAt,
+  ]);
 
   const capturePrependScrollAnchor = React.useCallback(
     (scrollElement: HTMLDivElement | null) => {
@@ -180,16 +302,41 @@ export function useChatMessages({
     [],
   );
 
-  const upsertMessage = React.useCallback((message: ChatMessage) => {
-    setMessages((prev) => {
-      if (prev.some((entry) => entry.id === message.id)) {
-        return prev;
+  const upsertMessage = React.useCallback(
+    (message: ChatMessage) => {
+      setMessages((prev) => {
+        const next = mergeMessagesInOrder(prev, [message]);
+        void putCachedMessage(chatId, currentUserId, message).catch(() => undefined);
+        setMemoryCachedChatMessages(chatId, currentUserId, next);
+        return next;
+      });
+      setVisibleIds((prev) => new Set(prev).add(message.id));
+    },
+    [chatId, currentUserId],
+  );
+
+  const mergeMessages = React.useCallback(
+    (incoming: ChatMessage[]) => {
+      if (incoming.length === 0) {
+        return;
       }
 
-      return [...prev, message];
-    });
-    setVisibleIds((prev) => new Set(prev).add(message.id));
-  }, []);
+      setMessages((prev) => {
+        const next = mergeMessagesInOrder(prev, incoming);
+        persistMessages(chatId, currentUserId, next);
+        return next;
+      });
+
+      setVisibleIds((prev) => {
+        const next = new Set(prev);
+        for (const message of incoming) {
+          next.add(message.id);
+        }
+        return next;
+      });
+    },
+    [chatId, currentUserId],
+  );
 
   const replaceMessage = React.useCallback(
     (predicate: (message: ChatMessage) => boolean, next: ChatMessage) => {
@@ -210,30 +357,45 @@ export function useChatMessages({
           return updated;
         });
 
+        if (previousId !== next.id) {
+          void deleteCachedMessage(previousId).catch(() => undefined);
+        }
+
+        void putCachedMessage(chatId, currentUserId, next).catch(() => undefined);
+        setMemoryCachedChatMessages(chatId, currentUserId, copy);
+
         return copy;
       });
     },
-    [],
+    [chatId, currentUserId],
   );
 
-  const removeMessage = React.useCallback((predicate: (message: ChatMessage) => boolean) => {
-    setMessages((prev) => {
-      const removed = prev.filter(predicate);
-      const next = prev.filter((message) => !predicate(message));
+  const removeMessage = React.useCallback(
+    (predicate: (message: ChatMessage) => boolean) => {
+      setMessages((prev) => {
+        const removed = prev.filter(predicate);
+        const next = prev.filter((message) => !predicate(message));
 
-      if (removed.length > 0) {
-        setVisibleIds((visible) => {
-          const updated = new Set(visible);
-          for (const message of removed) {
-            updated.delete(message.id);
-          }
-          return updated;
-        });
-      }
+        if (removed.length > 0) {
+          setVisibleIds((visible) => {
+            const updated = new Set(visible);
+            for (const message of removed) {
+              updated.delete(message.id);
+            }
+            return updated;
+          });
 
-      return next;
-    });
-  }, []);
+          void deleteCachedMessages(removed.map((message) => message.id)).catch(
+            () => undefined,
+          );
+          setMemoryCachedChatMessages(chatId, currentUserId, next);
+        }
+
+        return next;
+      });
+    },
+    [chatId, currentUserId],
+  );
 
   const updateMessages = React.useCallback(
     (updater: (messages: ChatMessage[]) => ChatMessage[]) => {
@@ -257,10 +419,11 @@ export function useChatMessages({
           return updated;
         });
 
+        persistMessages(chatId, currentUserId, next);
         return next;
       });
     },
-    [],
+    [chatId, currentUserId],
   );
 
   return {
@@ -271,6 +434,7 @@ export function useChatMessages({
     visibleIds,
     loadOlderMessages,
     upsertMessage,
+    mergeMessages,
     replaceMessage,
     removeMessage,
     updateMessages,

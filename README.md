@@ -29,9 +29,9 @@ cp frontend/.env.example frontend/.env
 
 Default URLs (fixed ports):
 - App: `http://localhost:3000`
-- Backend API: `http://localhost:3001/api`
+- Backend API: `http://localhost:4532/api`
 
-Set `NEXT_PUBLIC_API_URL=http://localhost:3001/api` in `frontend/.env` to match the backend port.
+Set `NEXT_PUBLIC_API_URL=http://localhost:4532/api` in `frontend/.env` to match the backend port.
 
 ## Getting started
 
@@ -42,7 +42,7 @@ npm install
 Run each server in its own terminal:
 
 ```bash
-npm run dev:backend    # http://localhost:3001/api
+npm run dev:backend    # http://localhost:4532/api
 npm run dev:frontend   # http://localhost:3000
 ```
 
@@ -54,11 +54,13 @@ npm run genkit:dev     # AI features
 
 ### Admin routes
 
-Admin pages live in the same Next.js app:
+Admin pages live in the same Next.js app under `/admin`:
 
 1. Open `http://localhost:3000/admin/login`
 2. Sign in with credentials from `backend/.env` (default: `admin@habitbuddies.com` / `adminpassword123`)
-3. Dashboard at `/admin/dashboard` — stats, users, and groups
+3. Admin console at `/admin` — overview, users (`/admin/users`), and groups (`/admin/groups`)
+
+There is no admin sign-up; access is credentials-only from `backend/.env`.
 
 ### User app auth
 

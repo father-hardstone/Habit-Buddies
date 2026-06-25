@@ -8,8 +8,8 @@ export default function AdminNotFound() {
       compact
       title="Admin page not found"
       message="This admin page does not exist."
-      homeHref="/admin/dashboard"
-      homeLabel="Back to admin dashboard"
+      homeHref="/admin"
+      homeLabel="Back to admin overview"
     />
   );
 }

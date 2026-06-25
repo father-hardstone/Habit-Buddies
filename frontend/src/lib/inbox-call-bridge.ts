@@ -2,6 +2,7 @@ export type InboxCallEvent =
   | 'call_invite'
   | 'call_accept'
   | 'call_decline'
+  | 'call_cancel'
   | 'call_end'
   | 'call_missed';
 
@@ -24,6 +25,7 @@ export const INBOX_CALL_EVENTS: InboxCallEvent[] = [
   'call_invite',
   'call_accept',
   'call_decline',
+  'call_cancel',
   'call_end',
   'call_missed',
 ];
