@@ -110,7 +110,7 @@ function GroupTabButton({
         >
           {group.name}
         </p>
-        <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+        <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground max-sm:hidden">
           <Users className="size-3 shrink-0" />
           {group.members} members
         </p>
@@ -168,10 +168,10 @@ export function GroupTabsBar({
 
   return (
     <div className="w-full">
-      <div className="flex items-stretch gap-2 rounded-2xl border border-border/60 bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50 p-1.5 shadow-inner">
-        <div className="flex min-w-0 flex-1 gap-1.5">
+      <div className="flex items-stretch gap-2 overflow-x-auto rounded-2xl border border-border/60 bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50 p-1.5 shadow-inner scrollbar-thin">
+        <div className="flex min-w-0 flex-1 gap-1.5 max-sm:min-w-full">
           {visibleGroups.map((group, index) => (
-            <div key={group.id} className="min-w-0 flex-1">
+            <div key={group.id} className="min-w-[6.75rem] flex-1 max-sm:shrink-0">
               <GroupTabButton
               group={group}
               isActive={group.id === activeGroupId}

@@ -100,7 +100,7 @@ export class AdminService {
 
   async getGroups() {
     const groups = await this.groupsRepository.find({
-      relations: { members: true, tags: true },
+      relations: { members: true, tags: true, habits: true },
       order: { name: 'ASC' },
     });
 
@@ -111,6 +111,7 @@ export class AdminService {
       image: group.imageUrl ?? '',
       tags: group.tags.map((tag) => tag.tag),
       memberCount: group.members.length,
+      habitCount: group.habits.length,
     }));
   }
 

@@ -1,5 +1,5 @@
 
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/hooks/use-auth';
@@ -16,6 +16,11 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: 'Habit Buddies',
   description: 'A social habit tracking application.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({

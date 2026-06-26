@@ -15,7 +15,7 @@ export function HabitList({ groupId, habits, onHabitUpdated, className }: HabitL
   return (
     <section
       className={cn(
-        'flex h-full min-h-0 flex-col rounded-lg border border-border/70 bg-card/40 shadow-sm',
+        'flex flex-col rounded-lg border border-border/70 bg-card/40 shadow-sm lg:h-full lg:min-h-0',
         className,
       )}
     >
@@ -23,7 +23,7 @@ export function HabitList({ groupId, habits, onHabitUpdated, className }: HabitL
         <h2 className="text-lg font-semibold font-headline tracking-tight">My Habits</h2>
         <p className="text-sm text-muted-foreground">Track weekly progress and daily streaks.</p>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 scrollbar-thin md:p-4">
+      <div className="p-3 md:p-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain lg:scrollbar-thin">
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
           {habits.map((habit) => (
             <HabitCard

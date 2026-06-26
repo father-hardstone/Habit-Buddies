@@ -11,10 +11,10 @@ const optionalOpenTelemetryExporters = [
   '@opentelemetry/exporter-otlp-proto',
 ] as const;
 
-function supabaseImagePatterns(): NonNullable<
-  NextConfig['images']
->['remotePatterns'] {
-  const patterns: NonNullable<NextConfig['images']>['remotePatterns'] = [
+function supabaseImagePatterns() {
+  const patterns: NonNullable<
+    NonNullable<NextConfig['images']>['remotePatterns']
+  > = [
     {
       protocol: 'https',
       hostname: '*.supabase.co',

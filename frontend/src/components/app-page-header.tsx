@@ -19,7 +19,7 @@ export function AppPageHeader({
   return (
     <header
       className={cn(
-        'z-10 flex shrink-0 flex-col gap-4 border-b bg-background/95 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:flex-row md:items-center md:justify-between md:p-6',
+        'sticky top-0 z-30 flex shrink-0 flex-col gap-4 border-b bg-background/95 p-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:flex-row md:items-center md:justify-between md:p-6',
         className,
       )}
     >

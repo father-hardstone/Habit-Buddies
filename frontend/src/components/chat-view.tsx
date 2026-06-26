@@ -622,8 +622,8 @@ export function ChatView({
   return (
     <div
       className={cn(
-        'relative flex flex-col bg-[#efeae2] dark:bg-background',
-        embedded ? 'h-full min-h-0' : 'h-[100dvh]',
+        'relative flex min-h-0 flex-col overflow-hidden bg-[#efeae2] dark:bg-background',
+        embedded ? 'h-full' : 'h-[100dvh] max-h-[100dvh]',
       )}
     >
       <header className="z-10 flex shrink-0 items-center gap-2 border-b border-[#d1d7db] bg-[#f0f2f5] px-2 py-2 shadow-sm dark:border-border dark:bg-card md:gap-3 md:px-4">
@@ -696,7 +696,7 @@ export function ChatView({
         ref={scrollRef}
         onScroll={handleScroll}
         className={cn(
-          'chat-scroll flex-1 overflow-y-auto px-4 py-4',
+          'chat-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4',
           isScrolling && 'chat-scroll--active',
         )}
         style={{
@@ -819,7 +819,7 @@ export function ChatView({
         )}
       </main>
 
-      <div className="relative shrink-0">
+      <div className="relative z-10 shrink-0">
         <Button
           type="button"
           size="sm"

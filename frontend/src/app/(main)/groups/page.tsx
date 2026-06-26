@@ -98,7 +98,7 @@ export default function GroupsPage() {
         </div>
         <CreateGroupDialog onCreated={handleGroupCreated} />
       </AppPageHeader>
-      <main className="min-h-0 flex-1 overflow-y-auto p-4 scrollbar-thin md:p-6 lg:p-8">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 scrollbar-thin md:p-6 lg:p-8">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredGroups.map((group) => (
             <Card key={group.id} className="flex flex-col overflow-hidden shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">

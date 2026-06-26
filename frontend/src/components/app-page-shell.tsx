@@ -10,7 +10,12 @@ export function AppPageShell({
   className?: string;
 }) {
   return (
-    <div className={cn('flex h-full min-h-0 flex-col overflow-hidden', className)}>
+    <div
+      className={cn(
+        'flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden lg:h-full lg:max-h-full',
+        className,
+      )}
+    >
       {children}
     </div>
   );

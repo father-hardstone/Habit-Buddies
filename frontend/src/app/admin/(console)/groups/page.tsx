@@ -1,15 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { getAdminGroups } from '@/lib/admin-api';
+import { getAdminGroups, type AdminGroup } from '@/lib/admin-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminGroupsContentSkeleton } from '@/components/ui/skeleton-loaders';
 import { handleAsyncError } from '@/lib/error-utils';
 
 export default function AdminGroupsPage() {
-  const [groups, setGroups] = React.useState<
-    { id: string; name: string; description: string; memberCount: number; habits: unknown[] }[]
-  >([]);
+  const [groups, setGroups] = React.useState<AdminGroup[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -44,7 +42,7 @@ export default function AdminGroupsPage() {
             </CardHeader>
             <CardContent className="flex gap-4 text-sm text-muted-foreground">
               <span>{group.memberCount} members</span>
-              <span>{group.habits.length} habits</span>
+              <span>{group.habitCount ?? 0} habits</span>
             </CardContent>
           </Card>
         ))}

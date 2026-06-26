@@ -26,7 +26,7 @@ const habitColors = [
 ];
 
 const dashboardShellClass =
-  'flex min-h-0 flex-col xl:h-full xl:max-h-full xl:overflow-hidden';
+  'flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden lg:h-full lg:max-h-full';
 
 export function Dashboard() {
   const { user } = useAuth();

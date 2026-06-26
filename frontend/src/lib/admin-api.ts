@@ -50,8 +50,16 @@ export function getDemoUsers() {
   return adminFetch<RegisteredUser[]>('/admin/demo-users');
 }
 
+export type AdminGroup = {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  tags: string[];
+  memberCount: number;
+  habitCount: number;
+};
+
 export function getAdminGroups() {
-  return adminFetch<
-    { id: string; name: string; description: string; memberCount: number; habits: unknown[] }[]
-  >('/admin/groups');
+  return adminFetch<AdminGroup[]>('/admin/groups');
 }

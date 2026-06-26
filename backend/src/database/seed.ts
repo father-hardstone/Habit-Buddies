@@ -128,7 +128,7 @@ async function seed() {
   }
 
   const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@habitbuddies.com';
-  const adminPassword = process.env.ADMIN_PASSWORD ?? 'adminpassword123';
+  const adminPassword = process.env.ADMIN_PASSWORD ?? 'Password';
   const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
 
   await userRepo.save(

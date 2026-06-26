@@ -16,13 +16,13 @@ function ChatsLayoutInner({ children }: { children: React.ReactNode }) {
   const isChatOpen = Boolean(selectedChatId);
 
   return (
-    <div className="flex h-full min-h-0 overflow-hidden bg-[#f0f2f5] dark:bg-background">
+    <div className="flex h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden bg-[#f0f2f5] dark:bg-background lg:h-full lg:max-h-full">
       <ChatListPanel
         className={cn(isChatOpen && 'hidden md:flex')}
       />
       <div
         className={cn(
-          'flex min-h-0 min-w-0 flex-1 flex-col',
+          'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
           !isChatOpen && 'hidden md:flex',
         )}
       >

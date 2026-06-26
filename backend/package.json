@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:supabase": "node scripts/test-supabase.mjs",
     "seed": "ts-node --transpile-only src/database/seed.ts",
+    "ensure-admin": "npm run build && node dist/database/ensure-admin.js",
     "migrate:call-messages": "npm run build && node dist/database/migrate-call-sessions-to-messages.js"
   },
   "dependencies": {

@@ -229,6 +229,10 @@ function SidebarLayoutInner({ children }: { children: React.ReactNode }) {
     if (isMobile) setOpenMobile(false);
   }, [isMobile, setOpenMobile]);
 
+  const isChatsRoute = pathname.startsWith('/chats');
+  const isViewportLockedRoute =
+    isChatsRoute || pathname === '/' || pathname.startsWith('/groups');
+
   React.useEffect(() => {
     closeMobile();
   }, [pathname, closeMobile]);
@@ -274,8 +278,22 @@ function SidebarLayoutInner({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset className="flex h-svh max-h-svh flex-col overflow-hidden bg-muted/30 md:h-[calc(100svh-1rem)] md:max-h-[calc(100svh-1rem)]">
-        <div className="flex h-full min-h-0 flex-1 flex-col">{children}</div>
+      <SidebarInset
+        className={cn(
+          'flex min-h-svh flex-col overflow-x-hidden bg-muted/30 md:min-h-[calc(100svh-1rem)]',
+          isViewportLockedRoute
+            ? 'h-svh max-h-svh overflow-hidden lg:h-[calc(100svh-1rem)] lg:max-h-[calc(100svh-1rem)]'
+            : 'overflow-y-auto lg:h-[calc(100svh-1rem)] lg:max-h-[calc(100svh-1rem)] lg:overflow-hidden',
+        )}
+      >
+        <div
+          className={cn(
+            'flex min-h-0 flex-1 flex-col',
+            isViewportLockedRoute ? 'overflow-hidden' : 'lg:overflow-hidden',
+          )}
+        >
+          {children}
+        </div>
       </SidebarInset>
     </>
   );

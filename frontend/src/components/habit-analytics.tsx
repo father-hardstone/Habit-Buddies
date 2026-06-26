@@ -230,7 +230,7 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
   return (
     <Card
       className={cn(
-        'flex min-h-0 flex-col overflow-hidden border-border/60 shadow-sm',
+        'flex flex-col border-border/60 shadow-sm lg:min-h-0 lg:overflow-hidden',
         className,
       )}
     >
@@ -238,8 +238,8 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
         <CardTitle className="text-sm font-semibold">Weekly activity</CardTitle>
       </CardHeader>
 
-      <CardContent className="grid min-h-0 flex-1 grid-cols-1 gap-2 p-2 pt-0 lg:grid-cols-2">
-        <div className="flex min-h-[9rem] flex-col rounded-md border bg-muted/20 p-2">
+      <CardContent className="grid flex-1 grid-cols-1 gap-3 p-2 pt-0 sm:gap-2 lg:grid-cols-2">
+        <div className="flex min-h-[11rem] flex-col rounded-md border bg-muted/20 p-2 sm:min-h-[9rem]">
           <div className="mb-1.5 flex shrink-0 items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[11px] font-medium leading-tight">
@@ -393,8 +393,8 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
           </div>
         </div>
 
-        <div className="grid min-h-[9rem] grid-cols-2 gap-2">
-          <div className="flex min-h-[9rem] flex-col rounded-md border bg-muted/20 p-1.5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-2">
+          <div className="flex min-h-[12rem] flex-col rounded-md border bg-muted/20 p-1.5 sm:min-h-[9rem]">
             <div className="shrink-0 px-0.5">
               <p className="text-[11px] font-medium leading-tight">Streak vs target</p>
               <p className="text-[10px] text-muted-foreground">
@@ -474,7 +474,7 @@ export function HabitAnalytics({ groupId, className, refreshKey = 0 }: HabitAnal
             </ul>
           </div>
 
-          <div className="flex min-h-[9rem] flex-col rounded-md border bg-muted/20 p-1.5">
+          <div className="flex min-h-[12rem] flex-col rounded-md border bg-muted/20 p-1.5 sm:min-h-[9rem]">
             <div className="shrink-0 px-0.5">
               <p className="text-[11px] font-medium leading-tight">7-day score mix</p>
               <p className="text-[10px] text-muted-foreground">

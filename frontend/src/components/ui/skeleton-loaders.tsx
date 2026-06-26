@@ -108,13 +108,13 @@ export function GenericContentSkeleton() {
 export function DashboardContentSkeleton() {
   return (
     <main
-      className="min-h-0 flex-1 overflow-hidden p-4 md:p-6 xl:p-8"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4 scrollbar-thin md:p-5 lg:overflow-hidden lg:p-6"
       role="status"
       aria-busy="true"
       aria-label="Loading group data"
     >
-      <div className="grid h-full min-h-0 grid-cols-1 gap-4 xl:grid-cols-3 xl:gap-6">
-        <div className="flex min-h-0 flex-col gap-4 xl:col-span-2 xl:overflow-y-auto">
+      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-5 lg:overflow-hidden">
+        <div className="flex flex-col gap-4 lg:col-span-2 lg:min-h-0 lg:overflow-hidden">
           <div className="space-y-4">
             <Skeleton className="h-8 w-36" />
             <Skeleton className="h-4 w-64" />
@@ -126,7 +126,7 @@ export function DashboardContentSkeleton() {
           </div>
           <Skeleton className="h-64 w-full shrink-0 rounded-xl" />
         </div>
-        <div className="flex min-h-0 flex-col gap-4 xl:col-span-1 xl:overflow-y-auto">
+        <div className="flex flex-col gap-4 lg:col-span-1 lg:min-h-0 lg:overflow-hidden">
           <GroupRankingSkeleton />
           <Skeleton className="h-48 w-full shrink-0 rounded-xl" />
         </div>
@@ -138,12 +138,12 @@ export function DashboardContentSkeleton() {
 export function DashboardSkeleton() {
   return (
     <div
-      className="flex h-full min-h-0 flex-col overflow-hidden"
+      className="flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden lg:h-full lg:max-h-full"
       role="status"
       aria-busy="true"
       aria-label="Loading dashboard"
     >
-      <header className="flex shrink-0 flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:px-8 md:py-5">
+      <header className="sticky top-0 z-30 flex shrink-0 flex-col gap-4 border-b bg-background/80 p-4 backdrop-blur-sm md:px-8 md:py-5">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <Skeleton className="h-8 w-40" />
@@ -202,9 +202,9 @@ export function GroupsGridContentSkeleton() {
 
 export function GroupsPageSkeleton() {
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden lg:h-full lg:max-h-full">
       <PageHeaderSkeleton lines={2} search action />
-      <main className="min-h-0 flex-1 overflow-y-auto p-4 scrollbar-thin md:p-6 lg:p-8">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 scrollbar-thin md:p-6 lg:p-8">
         <GroupsGridContentSkeleton />
       </main>
     </div>

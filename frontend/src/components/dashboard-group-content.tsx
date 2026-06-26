@@ -77,36 +77,34 @@ export function DashboardGroupContent({
   }
 
   return (
-    <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-5 xl:p-6">
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden xl:grid-cols-3 xl:gap-5">
-        <div className="flex min-h-0 flex-col overflow-hidden xl:col-span-2">
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <HabitList
-              groupId={groupId}
-              habits={habits}
-              onHabitUpdated={handleHabitUpdated}
-              className="h-full"
-            />
-          </div>
-          <div className="mt-3 h-[min(45vh,22rem)] min-h-[12rem] shrink-0">
+    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4 scrollbar-thin md:p-5 lg:overflow-hidden lg:p-6">
+      <div className="flex flex-col gap-4 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:gap-5 lg:overflow-hidden">
+        <div className="flex flex-col gap-4 lg:col-span-2 lg:min-h-0 lg:overflow-hidden">
+          <HabitList
+            groupId={groupId}
+            habits={habits}
+            onHabitUpdated={handleHabitUpdated}
+            className="lg:h-full lg:min-h-0"
+          />
+          <div className="shrink-0 lg:h-[min(45vh,22rem)] lg:min-h-[12rem]">
             <HabitAnalytics
               groupId={groupId}
               refreshKey={analyticsRefreshKey}
-              className="h-full w-full"
+              className="min-h-[22rem] w-full lg:h-full"
             />
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col overflow-hidden xl:col-span-1">
+        <div className="flex flex-col gap-4 lg:col-span-1 lg:min-h-0 lg:overflow-hidden">
           <GroupRanking
             groupId={groupId}
             currentUserId={userId}
             refreshKey={rankingRefreshKey}
-            className="min-h-0 flex-1"
+            className="lg:min-h-0 lg:flex-1"
           />
           <PersonalizedMotivation
             habits={habits}
-            className="mt-3 shrink-0 rounded-lg border shadow-sm"
+            className="shrink-0 rounded-lg border shadow-sm"
           />
         </div>
       </div>

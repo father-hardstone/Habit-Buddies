@@ -41,8 +41,8 @@ export function Header({
   const activeGroupData = joinedGroups.find(g => g.id === activeGroup);
 
   return (
-    <header className="z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:px-6 md:py-4">
-      <div className="flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-30 flex shrink-0 flex-col gap-3 border-b bg-background/95 px-4 py-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:px-6 md:py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
            <SidebarTrigger className="shrink-0 md:hidden" />
           <div className="min-w-0">
@@ -52,7 +52,7 @@ export function Header({
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
           {activeGroupData?.adminId === user.id && (
             <>
               <GroupInviteTrigger

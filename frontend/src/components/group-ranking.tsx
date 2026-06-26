@@ -56,7 +56,7 @@ export function GroupRanking({
 
   if (!groupId) {
     return (
-      <Card className={cn('h-full', className)}>
+      <Card className={cn('lg:h-full', className)}>
         <CardHeader>
           <CardTitle>Select a Group</CardTitle>
           <CardDescription>Choose a group from the tabs above to see the ranking.</CardDescription>
@@ -67,7 +67,7 @@ export function GroupRanking({
 
   if (!group) {
     return (
-      <div className={cn('h-full min-h-0', className)}>
+      <div className={cn('lg:h-full lg:min-h-0', className)}>
         <GroupRankingSkeleton />
       </div>
     );
@@ -79,7 +79,7 @@ export function GroupRanking({
 
   return (
     <>
-      <Card className={cn('flex h-full min-h-0 flex-col overflow-hidden', className)}>
+      <Card className={cn('flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden', className)}>
         <CardHeader className="shrink-0 pb-3">
           <div className="flex items-start justify-between">
             <div>
@@ -94,7 +94,7 @@ export function GroupRanking({
             )}
           </div>
         </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col items-start pb-4">
+        <CardContent className="flex flex-col items-start pb-4 lg:min-h-0 lg:flex-1">
           <ul className="w-full space-y-2">
             {visibleMembers.map((member, index) => (
               <li key={member.userId}>
